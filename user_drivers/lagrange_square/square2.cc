@@ -70,12 +70,26 @@ struct SquareLagrangeVariables{
 
   // Setting the defaults:
   SquareLagrangeVariables() :
-    W_solver(0),NS_solver(1),F_solver(0),P_solver(0),
-    Vis_str("Sim"),Ang(30.0),Rey(100.0),Noel(4),Scaling_sigma(0),
-    Prob_str("2DStrPo"),W_str("We"),NS_str("NSlsc"),F_str("Fe"),P_str("Pe"),
-    Ang_str("Ang30"),Rey_str("Rey100"),Noel_str("Noel4"),Sigma_str(""),
-
-    Use_axnorm(true), Use_diagonal_w_block(true)
+    W_solver(0),
+    NS_solver(1),
+    F_solver(0),
+    P_solver(0),
+    Vis_str("Sim"),
+    Ang(30.0),
+    Rey(100.0),
+    Noel(4),
+    Scaling_sigma(0),
+    Prob_str("Sq"),
+    W_str("We"),
+    NS_str("Nl"),
+    F_str("Fe"),
+    P_str("Pe"),
+    Ang_str("A30"),
+    Rey_str("R100"),
+    Noel_str("N4"),
+    Sigma_str(""),
+    Use_axnorm(true),
+    Use_diagonal_w_block(true)
   {}
 };
 
@@ -650,7 +664,7 @@ pause("closer");
  CommandLineArgs::specify_command_line_flag("--noel", &myvar.Noel);
  CommandLineArgs::specify_command_line_flag("--sigma",
                                             &myvar.Scaling_sigma);
- CommandLineArgs::specify_command_line_flag("--diagw");
+ CommandLineArgs::specify_command_line_flag("--bdw");
 
 /*
 cout << "Ang: " << myvar.Ang << " Rey: " << myvar.Rey << endl;
@@ -702,10 +716,10 @@ cout << "Visc: " << myvar.Vis_str << " Prec: " << myvar.Prec << endl;
   switch(myvar.NS_solver)
   {
     case 0:
-      myvar.NS_str = "NSe";
+      myvar.NS_str = "Ne";
       break;
     case 1:
-      myvar.NS_str = "NSlsc";
+      myvar.NS_str = "Nl";
       break;
     default:
       std::cout << "Do not recognise NS: " << myvar.NS_solver << "\n"
@@ -781,7 +795,7 @@ cout << "Visc: " << myvar.Vis_str << " Prec: " << myvar.Prec << endl;
  if(CommandLineArgs::command_line_flag_has_been_set("--ang"))
  {
    std::ostringstream strs;
-   strs << "Ang" << myvar.Ang;
+   strs << "A" << myvar.Ang;
    myvar.Ang_str = strs.str();
 
    // Now we need to convert Ang into radians.
@@ -793,7 +807,7 @@ cout << "Visc: " << myvar.Vis_str << " Prec: " << myvar.Prec << endl;
  if(CommandLineArgs::command_line_flag_has_been_set("--rey"))
  {
    std::ostringstream strs;
-   strs << "Rey" << myvar.Rey;
+   strs << "R" << myvar.Rey;
    myvar.Rey_str = strs.str();
  }
 
@@ -801,7 +815,7 @@ cout << "Visc: " << myvar.Vis_str << " Prec: " << myvar.Prec << endl;
  if(CommandLineArgs::command_line_flag_has_been_set("--noel"))
  {
    std::ostringstream strs;
-   strs << "Noel" << myvar.Noel;
+   strs << "N" << myvar.Noel;
    myvar.Noel_str = strs.str();
  }
 
@@ -811,21 +825,21 @@ cout << "Visc: " << myvar.Vis_str << " Prec: " << myvar.Prec << endl;
    myvar.Use_axnorm = false;
 
    std::ostringstream strs;
-   strs << "Sig" << myvar.Scaling_sigma;
+   strs << "S" << myvar.Scaling_sigma;
    myvar.Sigma_str = strs.str();
  }
 
  // use the diagonal or block diagonal approximation for W block.
  string w_block_str = "";
- if(CommandLineArgs::command_line_flag_has_been_set("--diagw"))
+ if(CommandLineArgs::command_line_flag_has_been_set("--bdw"))
  {
-   myvar.Use_diagonal_w_block = true;
-   w_block_str = "diagw";
+   myvar.Use_diagonal_w_block = false;
+   w_block_str = "bdw";
  }
  else
  {
-   myvar.Use_diagonal_w_block = false;
-   w_block_str = "bdiagw";
+   myvar.Use_diagonal_w_block = true;
+   w_block_str = "";
  }
 
 
