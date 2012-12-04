@@ -93,14 +93,46 @@ struct SquareLagrangeVariables{
     Sigma_str(""), // Sigma string.
     W_approx_str(""), // diagonal approximation
     Use_axnorm(true), // Use norm of velocity in the x direction for Sigma.
-    Use_diagonal_w_block(true) // Use the diagonal approximation for W.
-    Loop_reynolds(false);
+    Use_diagonal_w_block(true), // Use the diagonal approximation for W.
+    Loop_reynolds(false)
   {}
-
 };
+
+
+
+
+
+#ifdef OOMPH_HAS_HYPRE
+//=============================================================================
+/// helper method for the block diagonal F block preconditioner to allow 
+/// hypre to be used for as a subsidiary block preconditioner
+//=============================================================================
+namespace Hypre_Subsidiary_Preconditioner_Helper
+{                 
+  Preconditioner* set_hypre_preconditioner()
+  {
+    Preconditioner* another_preconditioner_pt =  
+      new HyprePreconditioner;
+    HyprePreconditioner* hypre_preconditioner_pt = 
+      static_cast<HyprePreconditioner*>(another_preconditioner_pt);
+
+    Hypre_default_settings::
+      set_defaults_for_2D_poisson_problem(hypre_preconditioner_pt);
+ 
+    return new HyprePreconditioner;
+  }                
+} 
+#endif            
+
+
+
 
 namespace oomph
 {
+
+
+
+
 
 //========================================================================
 /// \short A Sloping Mesh  class.
@@ -396,6 +428,8 @@ TiltedCavityProblem<ELEMENT>::TiltedCavityProblem
              << std::endl;
  }
 
+ //////////////////////////////////////////////////////////////////////////////
+ // NS preconditioner
  ConstrainedNavierStokesSchurComplementPreconditioner* ns_preconditioner_pt =
  new ConstrainedNavierStokesSchurComplementPreconditioner;
 
@@ -411,12 +445,14 @@ TiltedCavityProblem<ELEMENT>::TiltedCavityProblem
    ns_preconditioner_pt->set_navier_stokes_mesh(Bulk_mesh_pt);
 
    // F block solve
+   // Preconditioner for the F block:
+   Preconditioner* f_preconditioner_pt = 0;
    // myvar.F_solver == 0 is default, so do nothing.
    if(myvar.F_solver == 1)
    {
 #ifdef OOMPH_HAS_HYPRE
      // LSC takes type "Preconditioner".
-     Preconditioner* f_preconditioner_pt = new HyprePreconditioner;
+     f_preconditioner_pt = new HyprePreconditioner;
 
      // Cast it so we can set the HYPRE properties.
      HyprePreconditioner* hypre_preconditioner_pt =
@@ -426,11 +462,25 @@ TiltedCavityProblem<ELEMENT>::TiltedCavityProblem
      Hypre_default_settings::
      set_defaults_for_2D_poisson_problem(hypre_preconditioner_pt);
 
-     // Set the preconditioner in the LSC preconditioner.
-     ns_preconditioner_pt->set_f_preconditioner(f_preconditioner_pt);
+#endif
+   }
+   else if(myvar.F_solver == 2)
+   {
+     f_preconditioner_pt = new BlockDiagonalPreconditioner<CRDoubleMatrix>;
+   }
+   else if(myvar.F_solver == 3)
+   {
+     f_preconditioner_pt = new BlockDiagonalPreconditioner<CRDoubleMatrix>;
+#ifdef OOMPH_HAS_HYPRE
+     dynamic_cast<BlockDiagonalPreconditioner<CRDoubleMatrix>* >
+       (f_preconditioner_pt)->set_subsidiary_preconditioner_function
+       (Hypre_Subsidiary_Preconditioner_Helper::set_hypre_preconditioner);
 #endif
    }
 
+   // Set the preconditioner in the LSC preconditioner.
+   ns_preconditioner_pt->set_f_preconditioner(f_preconditioner_pt);
+   
    // P block solve
    //myvar.P_solver == 0 is default, so do nothing.
    if(myvar.P_solver == 1)
@@ -810,6 +860,11 @@ cout << "Visc: " << myvar.Vis_str << " Prec: " << myvar.Prec << endl;
     case 1:
       myvar.F_str = "Fa";
       break;
+    case 2:
+      myvar.F_str = "Fde";
+      break;
+    case 3:
+      myvar.F_str = "Fda";
     default:
       std::cout << "Do not recognise F: " << myvar.F_solver << "\n"
                 << "Exact preconditioning = 0\n"
