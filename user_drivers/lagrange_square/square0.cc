@@ -865,6 +865,7 @@ cout << "Visc: " << myvar.Vis_str << " Prec: " << myvar.Prec << endl;
       break;
     case 3:
       myvar.F_str = "Fda";
+      break;
     default:
       std::cout << "Do not recognise F: " << myvar.F_solver << "\n"
                 << "Exact preconditioning = 0\n"
