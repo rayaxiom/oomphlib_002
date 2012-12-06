@@ -41,13 +41,21 @@ namespace oomph
  void MatrixVectorProduct::setup(CRDoubleMatrix* matrix_pt)
  {
   // clean memory
+  pause("Clean up memory:"); 
   this->clean_up_memory();
 
   // (re)build distribution_pt
+  pause("rebuild distribution"); 
+  
   this->build_distribution(matrix_pt->distribution_pt());
-
+  std::cout << "distribution of matrix: " 
+            << *(matrix_pt->distribution_pt()) << std::endl; 
+  
   // store the number of columns
+  
   Ncol = matrix_pt->ncol();
+  std::cout << "Ncol of matrix: " << Ncol << std::endl; 
+  pause("now determining trilinos:"); 
   
   // determine whether we are using trilinos
   Using_trilinos=false;
@@ -61,6 +69,7 @@ namespace oomph
   Using_trilinos=true;
 #endif
 #endif
+std::cout << "Using_trilinos is: " << Using_trilinos << std::endl; 
 
   // create the cols map
   Column_distribution_pt = new LinearAlgebraDistribution
@@ -71,6 +80,8 @@ namespace oomph
   if (Using_trilinos)
    {
 #ifdef OOMPH_HAS_TRILINOS
+     std::cout << "Going to create epetra" << std::endl; 
+     
     double t_start = TimingHelpers::timer();
     Epetra_matrix_pt = 
      TrilinosEpetraHelpers::create_distributed_epetra_matrix
@@ -78,6 +89,8 @@ namespace oomph
     double t_end = TimingHelpers::timer();
     oomph_info << "Time to build epetra matrix [sec] : "
                << t_end - t_start << std::endl;
+    std::cout << "Built epetra" << std::endl; 
+    
 #endif
    }
   else
@@ -88,6 +101,8 @@ namespace oomph
     oomph_info << "Time to copy CRDoubleMatrix [sec] : "
                << t_end - t_start << std::endl;
    }
+  std::cout << "end of constructor" << std::endl; 
+  
  }
 
  //============================================================================
@@ -112,6 +127,10 @@ namespace oomph
   // Check to see if x.size() = ncol().
   if (*this->Column_distribution_pt != *x.distribution_pt())
    {
+    std::cout << "Column_distribution_pt: "
+              << this->Column_distribution_pt << std::endl;
+    std::cout << "x.distribution_pt(): "
+              << x.distribution_pt() << std::endl;
     std::ostringstream error_message_stream;
     error_message_stream 
      << "This class assumes that the x vector has a uniform "

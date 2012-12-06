@@ -574,9 +574,12 @@ namespace oomph
   // Rebuild Bt (remember that we temporarily overwrote
   // it by its product with the inverse velocity mass matrix)
   t_get_Bt_start = TimingHelpers::timer();
-  bt_pt = Prec_blocks[2];
-  //this->get_block(0,1,cr_matrix_pt,bt_pt);
+  //bt_pt = Prec_blocks[2];
+  pause("Before get bt block"); 
+  
+  this->get_block(0,1,cr_matrix_pt,bt_pt);
   t_get_Bt_finish = TimingHelpers::timer();
+  
   if(Doc_time)
    {
     double t_get_Bt_time = t_get_Bt_finish - t_get_Bt_start;
@@ -588,7 +591,12 @@ namespace oomph
   // form the matrix vector operator for Bt
   double t_Bt_MV_start = TimingHelpers::timer();
   Bt_mat_vec_pt = new MatrixVectorProduct;
+
+  std::cout << "Bt matrix built: " << bt_pt->built()<< std::endl; 
+  
+ pause("after get bt block"); 
   Bt_mat_vec_pt->setup(bt_pt);
+pause("after bt mat vec setup"); 
   double t_Bt_MV_finish = TimingHelpers::timer();
   if(Doc_time)
    {
@@ -596,14 +604,16 @@ namespace oomph
     oomph_info << "Time to build Bt Matrix Vector Operator [sec]: "
                << t_Bt_MV_time << std::endl;
    }
-  //delete bt_pt;
+  delete bt_pt;
 
   // if the P preconditioner has not been setup
   if (P_preconditioner_pt == 0)
    {
+    pause("Setting up SuperLu for P"); 
     P_preconditioner_pt = new SuperLUPreconditioner;
     Using_default_p_preconditioner = true;
    }
+ 
 
   // Setup the preconditioner for the Pressure matrix
   double t_p_prec_start = TimingHelpers::timer();
@@ -616,7 +626,8 @@ namespace oomph
     p_matrix_pt->sparse_indexed_output_with_offset(junk.str());
     oomph_info << "Done output of " << junk.str() << std::endl;
    }
-  
+   pause("P_prec setup"); 
+   
   P_preconditioner_pt->setup(problem_pt, p_matrix_pt);
   delete p_matrix_pt;
   p_matrix_pt=0;
@@ -634,6 +645,8 @@ namespace oomph
   // if the F preconditioner has not been setup
   if (F_preconditioner_pt == 0)
    {
+    pause("Creating SuperLU for F_prec"); 
+    
     F_preconditioner_pt = new SuperLUPreconditioner;
     Using_default_f_preconditioner = true;
    }
@@ -651,6 +664,9 @@ namespace oomph
      }
     F_block_preconditioner_pt->
      turn_into_subsidiary_block_preconditioner(this,dof_map);
+    // NOTE: I HAVE TO CHANGE THIS SO IT USES MY AUGMENTED MATRIX
+    pause("F_prec setup"); 
+    
     F_block_preconditioner_pt->setup(problem_pt,matrix_pt);
    }
   // otherwise F is not a block preconditioner
@@ -757,10 +773,13 @@ namespace oomph
     // Multiply another_temp_vec by matrix E and stick the result into temp_vec
     temp_vec.clear();  
     QBt_mat_vec_pt->multiply(another_temp_vec, temp_vec);
+    pause("Le multiply"); 
     another_temp_vec.clear();
     F_mat_vec_pt->multiply(temp_vec,another_temp_vec);
+    pause("Le duex multiply"); 
     temp_vec.clear();
     QBt_mat_vec_pt->multiply_transpose(another_temp_vec, temp_vec);
+    pause("Le Tois multiply"); 
     
     
     // NOTE: The vector temp_vec now contains E P^{-1} r_p
@@ -827,7 +846,11 @@ namespace oomph
   // Multiply by G (stored in Block_matrix_pt(0,1) and store
   // result in temp_vec (vector resizes itself).
   temp_vec.clear();
+  pause("Before 4th damn multiply"); 
+  
   Bt_mat_vec_pt->multiply(another_temp_vec, temp_vec);
+pause("The 4th damn multiply"); 
+
 
   // NOTE: temp_vec now contains -G z_p
 
