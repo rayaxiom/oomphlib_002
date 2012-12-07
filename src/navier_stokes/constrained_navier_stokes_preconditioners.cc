@@ -479,7 +479,7 @@ namespace oomph
   // Kill divergence matrix because we don't need it any more
   //delete b_pt;
   
-  // Build the matvec operator for QBt
+
   double t_QBt_MV_start = TimingHelpers::timer();
   QBt_mat_vec_pt = new MatrixVectorProduct;
   QBt_mat_vec_pt->setup(bt_pt);
@@ -574,10 +574,11 @@ namespace oomph
   // Rebuild Bt (remember that we temporarily overwrote
   // it by its product with the inverse velocity mass matrix)
   t_get_Bt_start = TimingHelpers::timer();
-  //bt_pt = Prec_blocks[2];
-  pause("Before get bt block"); 
+  bt_pt = Prec_blocks[2];
+  bt_pt->sparse_indexed_output("Bt_from_constns");
+  //pause("Before get bt block"); 
   
-  this->get_block(0,1,cr_matrix_pt,bt_pt);
+  //this->get_block(0,1,cr_matrix_pt,bt_pt);
   t_get_Bt_finish = TimingHelpers::timer();
   
   if(Doc_time)
@@ -604,7 +605,7 @@ pause("after bt mat vec setup");
     oomph_info << "Time to build Bt Matrix Vector Operator [sec]: "
                << t_Bt_MV_time << std::endl;
    }
-  delete bt_pt;
+  //delete bt_pt;
 
   // if the P preconditioner has not been setup
   if (P_preconditioner_pt == 0)
@@ -924,7 +925,7 @@ pause("The 4th damn multiply");
   if (F_preconditioner_is_block_preconditioner)
    {
     pause("should not get here.... from NS prec solve...");
-    return_block_vector(0,another_temp_vec,z);
+    return_block_vector(0,yet_another_temp_vec,z);
     F_preconditioner_pt->preconditioner_solve(z,z);
    }
   else

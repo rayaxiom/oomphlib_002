@@ -342,6 +342,8 @@ class LagrangeEnforcedflowPreconditioner
     }
     else
     {
+      std::cout << "lagrange_enfor.. not using SuperLU_ns_prec " << std::endl; 
+      
       Navier_stokes_preconditioner_pt->preconditioner_solve(r,z);
     }
   } // end of preconditioner_solve
@@ -1857,7 +1859,7 @@ class LagrangeEnforcedflowPreconditioner
     cat(bt_pts,prec_blocks[2]);
     double t_merge_Bt_finish = TimingHelpers::timer();
 
-
+    prec_blocks[2]->sparse_indexed_output("Bt");
     if(Doc_time)
     {
       double t_merge_Bt_time = t_merge_Bt_finish - t_merge_Bt_start;
@@ -1930,9 +1932,9 @@ class LagrangeEnforcedflowPreconditioner
     Navier_stokes_block_preconditioner_pt
       ->setup(problem_pt,matrix_pt);
 
-    delete prec_blocks[0];
-    delete prec_blocks[1];
-    delete prec_blocks[2];
+    //delete prec_blocks[0];
+    //delete prec_blocks[1];
+    //delete prec_blocks[2];
 
     //delete j_aug_pt;
     //j_aug_pt = 0;

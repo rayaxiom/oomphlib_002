@@ -76,6 +76,7 @@ std::cout << "Using_trilinos is: " << Using_trilinos << std::endl;
    (matrix_pt->distribution_pt()->communicator_pt(),
     matrix_pt->ncol(),matrix_pt->distribution_pt()->distributed());
   
+  matrix_pt->sparse_indexed_output("mat_pt_from_matvecprod");
   // setup the operator
   if (Using_trilinos)
    {

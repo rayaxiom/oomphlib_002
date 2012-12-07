@@ -318,7 +318,7 @@ Epetra_CrsMatrix* TrilinosEpetraHelpers::create_distributed_epetra_matrix
  int* column = const_cast<int*>(oomph_matrix_pt->column_index());
  double* value = const_cast<double*>(oomph_matrix_pt->value());
  int* row_start = const_cast<int*>(oomph_matrix_pt->row_start());
- 
+  
   // create the corresponding Epetra_Map
  LinearAlgebraDistribution* target_dist_pt = 0;
  if (oomph_matrix_pt->distributed())
@@ -333,6 +333,7 @@ Epetra_CrsMatrix* TrilinosEpetraHelpers::create_distributed_epetra_matrix
     (oomph_matrix_pt->distribution_pt()->communicator_pt(),
      oomph_matrix_pt->nrow(),true);
   }
+ 
  Epetra_Map* epetra_map_pt = create_epetra_map(target_dist_pt);
 
  // first first coefficient of the oomph vector to be inserted into the 
@@ -349,12 +350,15 @@ Epetra_CrsMatrix* TrilinosEpetraHelpers::create_distributed_epetra_matrix
    
  // store the number of non zero entries per row
  int* nnz_per_row = new int[nrow_local];
+ 
  for (unsigned row=0;row<nrow_local;row++)
   {
    nnz_per_row[row] = row_start[row+offset+1] - row_start[offset+row];
   }
   
  // create the matrix
+ 
+ 
  Epetra_CrsMatrix* epetra_matrix_pt = 
   new Epetra_CrsMatrix(Copy,*epetra_map_pt,
                        nnz_per_row,true);
