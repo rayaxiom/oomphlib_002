@@ -229,7 +229,6 @@ public:
 #endif
 
    solver_time = linear_solver_pt()->linear_solver_solution_time();
-
    Doc_info_pt->add_iteration_and_time(iters,solver_time);
  }
  /// Doc the solution
@@ -942,7 +941,6 @@ cout << "Visc: " << myvar.Vis_str << " Prec: " << myvar.Prec << endl;
  }
 
 
-
  // Document the solution?.
  if(CommandLineArgs::command_line_flag_has_been_set("--doc_soln"))
  {
@@ -998,96 +996,97 @@ cout << "Visc: " << myvar.Vis_str << " Prec: " << myvar.Prec << endl;
      myvar.Rey_str = strs.str();
 
      // Setup the label. Used for doc solution and preconditioner.
- if(myvar.NS_solver == 0)
- {
-   doc_info.label() = myvar.Prob_str + myvar.W_str + myvar.NS_str + myvar.Vis_str
-                      + myvar.Ang_str + myvar.Rey_str + myvar.Noel_str
-                      + myvar.W_approx_str + myvar.Sigma_str;
- }
- else if(myvar.NS_solver == 1)
- {
-   doc_info.label() = myvar.Prob_str
-                      + myvar.W_str + myvar.NS_str + myvar.F_str + myvar.P_str
-                      + myvar.Vis_str + myvar.Ang_str + myvar.Rey_str
-                      + myvar.Noel_str + myvar.W_approx_str + myvar.Sigma_str;
- }
- else
- {
-   pause("There is no such NS preconditioner");
- }
+     if(myvar.NS_solver == 0)
+     {
+       doc_info.label() = myvar.Prob_str + myvar.W_str + myvar.NS_str + myvar.Vis_str
+         + myvar.Ang_str + myvar.Rey_str + myvar.Noel_str
+         + myvar.W_approx_str + myvar.Sigma_str;
+     }
+     else if(myvar.NS_solver == 1)
+     {
+       doc_info.label() = myvar.Prob_str
+         + myvar.W_str + myvar.NS_str + myvar.F_str + myvar.P_str
+         + myvar.Vis_str + myvar.Ang_str + myvar.Rey_str
+         + myvar.Noel_str + myvar.W_approx_str + myvar.Sigma_str;
+     }
+     else
+     {
+       pause("There is no such NS preconditioner");
+     }
 
- time_t rawtime;
- time(&rawtime);
+     time_t rawtime;
+     time(&rawtime);
 
- std::cout << "RAYDOING: "
-           << doc_info.label()
-           << " on " << ctime(&rawtime) << std::endl;
+     std::cout << "RAYDOING: "
+       << doc_info.label()
+       << " on " << ctime(&rawtime) << std::endl;
 
 
- // Solve the problem
- problem.newton_solve();
+     // Solve the problem
+     problem.newton_solve();
 
- //Output solution
- problem.doc_solution(doc_info);
+     //Output solution
+     problem.doc_solution(doc_info);
 
- // We now output the iteration and time.
- Vector<Vector<pair<unsigned, double> > > iters_times
-   = doc_info.iterations_and_times();
+     // We now output the iteration and time.
+     Vector<Vector<pair<unsigned, double> > > iters_times
+       = doc_info.iterations_and_times();
 
- // Below outputs the iteration counts and time.
- // Output the number of iterations
- // Since this is a steady state problem, there is only
- // one "time step".
- //*
+     // Below outputs the iteration counts and time.
+     // Output the number of iterations
+     // Since this is a steady state problem, there is only
+     // one "time step".
+     //*
 
- // Loop over the time step:
- unsigned ntimestep = iters_times.size();
- for(unsigned intimestep = 0; intimestep < ntimestep; intimestep++)
- {
-   // New timestep:
-   std::cout << "RAYITS:\t" << intimestep << "\t";
-   // Loop through the Newtom Steps
-   unsigned nnewtonstep = iters_times[intimestep].size();
-   unsigned sum_of_newtonstep_iters = 0;
-   for(unsigned innewtonstep = 0; innewtonstep < nnewtonstep;
-       innewtonstep++)
-   {
-      sum_of_newtonstep_iters += iters_times[intimestep][innewtonstep].first;
-      std::cout << iters_times[intimestep][innewtonstep].first << " ";
-   }
-   double average_its = ((double)sum_of_newtonstep_iters)
-                        / ((double)nnewtonstep);
+     // Loop over the time step:
+     unsigned ntimestep = iters_times.size();
 
-   // Print to one decimal place if the average is not an exact
-   // integer. Ohterwise we print normally.
-   ((unsigned(average_its*10))%10)?
-   std::cout << "\t"<< fixed << setprecision(1)
-             << average_its << "(" << nnewtonstep << ")" << endl:
-   std::cout << "\t"<< average_its << "(" << nnewtonstep << ")" << std::endl;
+     for(unsigned intimestep = 0; intimestep < ntimestep; intimestep++)
+     {
+       // New timestep:
+       std::cout << "RAYITS:\t" << intimestep << "\t";
+       // Loop through the Newtom Steps
+       unsigned nnewtonstep = iters_times[intimestep].size();
+       unsigned sum_of_newtonstep_iters = 0;
+       for(unsigned innewtonstep = 0; innewtonstep < nnewtonstep;
+           innewtonstep++)
+       {
+         sum_of_newtonstep_iters += iters_times[intimestep][innewtonstep].first;
+         std::cout << iters_times[intimestep][innewtonstep].first << " ";
+       }
+       double average_its = ((double)sum_of_newtonstep_iters)
+         / ((double)nnewtonstep);
 
- }
+       // Print to one decimal place if the average is not an exact
+       // integer. Ohterwise we print normally.
+       ((unsigned(average_its*10))%10)?
+         std::cout << "\t"<< fixed << setprecision(1)
+         << average_its << "(" << nnewtonstep << ")" << endl:
+         std::cout << "\t"<< average_its << "(" << nnewtonstep << ")" << std::endl;
 
- // Now doing the times
- for(unsigned intimestep = 0; intimestep < ntimestep; intimestep++)
- {
-   // New timestep:
-   std::cout << "RAYTIME:\t" << intimestep << "\t";
-   // Loop through the Newtom Steps
-   unsigned nnewtonstep = iters_times[intimestep].size();
-   double sum_of_newtonstep_times = 0;
-   for(unsigned innewtonstep = 0; innewtonstep < nnewtonstep;
-       innewtonstep++)
-   {
-      sum_of_newtonstep_times += iters_times[intimestep][innewtonstep].second;
-      std::cout << iters_times[intimestep][innewtonstep].second << " ";
-   }
-   double average_time = ((double)sum_of_newtonstep_times)
-                        / ((double)nnewtonstep);
+     }
 
-   // Print to one decimal place if the average is not an exact
-   // integer. Ohterwise we print normally.
-   std::cout << "\t"<< average_time << "(" << nnewtonstep << ")" << endl;
- }
+     // Now doing the times
+     for(unsigned intimestep = 0; intimestep < ntimestep; intimestep++)
+     {
+       // New timestep:
+       std::cout << "RAYTIME:\t" << intimestep << "\t";
+       // Loop through the Newtom Steps
+       unsigned nnewtonstep = iters_times[intimestep].size();
+       double sum_of_newtonstep_times = 0;
+       for(unsigned innewtonstep = 0; innewtonstep < nnewtonstep;
+           innewtonstep++)
+       {
+         sum_of_newtonstep_times += iters_times[intimestep][innewtonstep].second;
+         std::cout << iters_times[intimestep][innewtonstep].second << " ";
+       }
+       double average_time = ((double)sum_of_newtonstep_times)
+         / ((double)nnewtonstep);
+
+       // Print to one decimal place if the average is not an exact
+       // integer. Ohterwise we print normally.
+       std::cout << "\t"<< average_time << "(" << nnewtonstep << ")" << endl;
+     } // for timesteps
 /*
  // Output linear solver time
  double total_time = 0;
@@ -1116,212 +1115,127 @@ cout << "Visc: " << myvar.Vis_str << " Prec: " << myvar.Prec << endl;
  else
  {
 
-     std::ostringstream strs;
-     strs << "R" << myvar.Rey;
-     myvar.Rey_str = strs.str();
+   std::ostringstream strs;
+   strs << "R" << myvar.Rey;
+   myvar.Rey_str = strs.str();
 
-     // Setup the label. Used for doc solution and preconditioner.
- if(myvar.NS_solver == 0)
- {
-   doc_info.label() = myvar.Prob_str + myvar.W_str + myvar.NS_str + myvar.Vis_str
-                      + myvar.Ang_str + myvar.Rey_str + myvar.Noel_str
-                      + myvar.W_approx_str + myvar.Sigma_str;
- }
- else if(myvar.NS_solver == 1)
- {
-   doc_info.label() = myvar.Prob_str
-                      + myvar.W_str + myvar.NS_str + myvar.F_str + myvar.P_str
-                      + myvar.Vis_str + myvar.Ang_str + myvar.Rey_str
-                      + myvar.Noel_str + myvar.W_approx_str + myvar.Sigma_str;
- }
- else
- {
-   pause("There is no such NS preconditioner");
- }
+   // Setup the label. Used for doc solution and preconditioner.
+   if(myvar.NS_solver == 0)
+   {
+     doc_info.label() = myvar.Prob_str + myvar.W_str + myvar.NS_str + myvar.Vis_str
+       + myvar.Ang_str + myvar.Rey_str + myvar.Noel_str
+       + myvar.W_approx_str + myvar.Sigma_str;
+   }
+   else if(myvar.NS_solver == 1)
+   {
+     doc_info.label() = myvar.Prob_str
+       + myvar.W_str + myvar.NS_str + myvar.F_str + myvar.P_str
+       + myvar.Vis_str + myvar.Ang_str + myvar.Rey_str
+       + myvar.Noel_str + myvar.W_approx_str + myvar.Sigma_str;
+   }
+   else
+   {
+     pause("There is no such NS preconditioner");
+   }
 
- time_t rawtime;
- time(&rawtime);
+   time_t rawtime;
+   time(&rawtime);
 
- std::cout << "RAYDOING: "
-           << doc_info.label()
-           << " on " << ctime(&rawtime) << std::endl;
-
-
-
+   std::cout << "RAYDOING: "
+     << doc_info.label()
+     << " on " << ctime(&rawtime) << std::endl;
 
 
    // Solve the problem
    problem.newton_solve();
-   
+
    //Output solution
    problem.doc_solution(doc_info);
 
- // We now output the iteration and time.
- Vector<Vector<pair<unsigned, double> > > iters_times
-   = doc_info.iterations_and_times();
+   // We now output the iteration and time.
+   Vector<Vector<pair<unsigned, double> > > iters_times
+     = doc_info.iterations_and_times();
 
- // Below outputs the iteration counts and time.
- // Output the number of iterations
- // Since this is a steady state problem, there is only
- // one "time step".
- //*
+   // Below outputs the iteration counts and time.
+   // Output the number of iterations
+   // Since this is a steady state problem, there is only
+   // one "time step".
+   //*
 
- // Loop over the time step:
- unsigned ntimestep = iters_times.size();
- for(unsigned intimestep = 0; intimestep < ntimestep; intimestep++)
- {
-   // New timestep:
-   std::cout << "RAYITS:\t" << intimestep << "\t";
-   // Loop through the Newtom Steps
-   unsigned nnewtonstep = iters_times[intimestep].size();
-   unsigned sum_of_newtonstep_iters = 0;
-   for(unsigned innewtonstep = 0; innewtonstep < nnewtonstep;
-       innewtonstep++)
+   // Loop over the time step:
+   unsigned ntimestep = iters_times.size();
+   for(unsigned intimestep = 0; intimestep < ntimestep; intimestep++)
    {
-      sum_of_newtonstep_iters += iters_times[intimestep][innewtonstep].first;
-      std::cout << iters_times[intimestep][innewtonstep].first << " ";
+     // New timestep:
+     std::cout << "RAYITS:\t" << intimestep << "\t";
+     // Loop through the Newtom Steps
+     unsigned nnewtonstep = iters_times[intimestep].size();
+     unsigned sum_of_newtonstep_iters = 0;
+     for(unsigned innewtonstep = 0; innewtonstep < nnewtonstep;
+         innewtonstep++)
+     {
+       sum_of_newtonstep_iters += iters_times[intimestep][innewtonstep].first;
+       std::cout << iters_times[intimestep][innewtonstep].first << " ";
+     }
+     double average_its = ((double)sum_of_newtonstep_iters)
+       / ((double)nnewtonstep);
+
+     // Print to one decimal place if the average is not an exact
+     // integer. Otherwise we print normally.
+     std::streamsize cout_precision = std::cout.precision();
+     ((unsigned(average_its*10))%10)?
+       std::cout << "\t"<< fixed << std::setprecision(1)
+       << average_its << "(" << nnewtonstep << ")" << endl:
+       std::cout << "\t"<< average_its << "(" << nnewtonstep << ")" << std::endl;
+     std::cout << std::setprecision(cout_precision);
+
    }
-   double average_its = ((double)sum_of_newtonstep_iters)
-                        / ((double)nnewtonstep);
 
-   // Print to one decimal place if the average is not an exact
-   // integer. Ohterwise we print normally.
-   ((unsigned(average_its*10))%10)?
-   std::cout << "\t"<< fixed << setprecision(1)
-             << average_its << "(" << nnewtonstep << ")" << endl:
-   std::cout << "\t"<< average_its << "(" << nnewtonstep << ")" << std::endl;
-
- }
-
- // Now doing the times
- for(unsigned intimestep = 0; intimestep < ntimestep; intimestep++)
- {
-   // New timestep:
-   std::cout << "RAYTIME:\t" << intimestep << "\t";
-   // Loop through the Newtom Steps
-   unsigned nnewtonstep = iters_times[intimestep].size();
-   double sum_of_newtonstep_times = 0;
-   for(unsigned innewtonstep = 0; innewtonstep < nnewtonstep;
-       innewtonstep++)
+   // Now doing the times
+   for(unsigned intimestep = 0; intimestep < ntimestep; intimestep++)
    {
-      sum_of_newtonstep_times += iters_times[intimestep][innewtonstep].second;
-      std::cout << iters_times[intimestep][innewtonstep].second << " ";
-   }
-   double average_time = ((double)sum_of_newtonstep_times)
-                        / ((double)nnewtonstep);
+     // New timestep:
+     std::cout << "RAYTIME:\t" << intimestep << "\t";
+     // Loop through the Newtom Steps
+     unsigned nnewtonstep = iters_times[intimestep].size();
+     double sum_of_newtonstep_times = 0;
+     for(unsigned innewtonstep = 0; innewtonstep < nnewtonstep;
+         innewtonstep++)
+     {
+       sum_of_newtonstep_times += iters_times[intimestep][innewtonstep].second;
+       std::cout << iters_times[intimestep][innewtonstep].second << " ";
+     }
+     double average_time = ((double)sum_of_newtonstep_times)
+       / ((double)nnewtonstep);
 
-   // Print to one decimal place if the average is not an exact
-   // integer. Ohterwise we print normally.
-   std::cout << "\t"<< average_time << "(" << nnewtonstep << ")" << endl;
- }
-/*
- // Output linear solver time
- double total_time = 0;
- cout << "RAYTIME: " << setprecision(15);
- for (unsigned j = 0; j < iter; j++)
- {
+     // Print to one decimal place if the average is not an exact
+     // integer. Otherwise we print normally.
+     std::cout << "\t"<< average_time << "(" << nnewtonstep << ")" << endl;
+   }
+   /*
+   // Output linear solver time
+   double total_time = 0;
+   cout << "RAYTIME: " << setprecision(15);
+   for (unsigned j = 0; j < iter; j++)
+   {
    total_time += Global_Parameters::Linear_solver_time[j];
    cout << Global_Parameters::Linear_solver_time[j] << " ";
- }
- double average_time = total_time/iter;
-
- // Print to one decimal place if the average its is not an exact
- // integer. Otherwise we print normally.
- std::cout << "\t" << average_time << std::endl;
-
- time(&rawtime);
- std::cout << "RAYDONE: "
-           << Global_Parameters::Current_settings
-           << " on " << ctime (&rawtime) << endl;
-*/
-  
-
- }
-
- // Solve the problem
- problem.newton_solve();
-
- //Output solution
- problem.doc_solution(doc_info);
-
- // We now output the iteration and time.
- Vector<Vector<pair<unsigned, double> > > iters_times
-   = doc_info.iterations_and_times();
-
- // Below outputs the iteration counts and time.
- // Output the number of iterations
- // Since this is a steady state problem, there is only
- // one "time step".
- //*
-
- // Loop over the time step:
- unsigned ntimestep = iters_times.size();
- for(unsigned intimestep = 0; intimestep < ntimestep; intimestep++)
- {
-   // New timestep:
-   std::cout << "RAYITS:\t" << intimestep << "\t";
-   // Loop through the Newtom Steps
-   unsigned nnewtonstep = iters_times[intimestep].size();
-   unsigned sum_of_newtonstep_iters = 0;
-   for(unsigned innewtonstep = 0; innewtonstep < nnewtonstep;
-       innewtonstep++)
-   {
-      sum_of_newtonstep_iters += iters_times[intimestep][innewtonstep].first;
-      std::cout << iters_times[intimestep][innewtonstep].first << " ";
    }
-   double average_its = ((double)sum_of_newtonstep_iters)
-                        / ((double)nnewtonstep);
+   double average_time = total_time/iter;
 
-   // Print to one decimal place if the average is not an exact
-   // integer. Ohterwise we print normally.
-   ((unsigned(average_its*10))%10)?
-   std::cout << "\t"<< fixed << setprecision(1)
-             << average_its << "(" << nnewtonstep << ")" << endl:
-   std::cout << "\t"<< average_its << "(" << nnewtonstep << ")" << std::endl;
+   // Print to one decimal place if the average its is not an exact
+   // integer. Otherwise we print normally.
+   std::cout << "\t" << average_time << std::endl;
+
+   time(&rawtime);
+   std::cout << "RAYDONE: "
+   << Global_Parameters::Current_settings
+   << " on " << ctime (&rawtime) << endl;
+   */
+
 
  }
 
- // Now doing the times
- for(unsigned intimestep = 0; intimestep < ntimestep; intimestep++)
- {
-   // New timestep:
-   std::cout << "RAYTIME:\t" << intimestep << "\t";
-   // Loop through the Newtom Steps
-   unsigned nnewtonstep = iters_times[intimestep].size();
-   double sum_of_newtonstep_times = 0;
-   for(unsigned innewtonstep = 0; innewtonstep < nnewtonstep;
-       innewtonstep++)
-   {
-      sum_of_newtonstep_times += iters_times[intimestep][innewtonstep].second;
-      std::cout << iters_times[intimestep][innewtonstep].second << " ";
-   }
-   double average_time = ((double)sum_of_newtonstep_times)
-                        / ((double)nnewtonstep);
-
-   // Print to one decimal place if the average is not an exact
-   // integer. Ohterwise we print normally.
-   std::cout << "\t"<< average_time << "(" << nnewtonstep << ")" << endl;
- }
-/*
- // Output linear solver time
- double total_time = 0;
- cout << "RAYTIME: " << setprecision(15);
- for (unsigned j = 0; j < iter; j++)
- {
-   total_time += Global_Parameters::Linear_solver_time[j];
-   cout << Global_Parameters::Linear_solver_time[j] << " ";
- }
- double average_time = total_time/iter;
-
- // Print to one decimal place if the average its is not an exact
- // integer. Otherwise we print normally.
- std::cout << "\t" << average_time << std::endl;
-
- time(&rawtime);
- std::cout << "RAYDONE: "
-           << Global_Parameters::Current_settings
-           << " on " << ctime (&rawtime) << endl;
-*/
 
 #ifdef OOMPH_HAS_MPI
 // finalize MPI

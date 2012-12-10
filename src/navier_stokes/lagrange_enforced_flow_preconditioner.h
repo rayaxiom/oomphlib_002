@@ -261,6 +261,9 @@ class LagrangeEnforcedflowPreconditioner
 
     // At this point, all vectors are cleared.
 
+    std::cout << "Using_superlu_ns_preconditioner: " << Using_superlu_ns_preconditioner << std::endl; 
+    //pause("done"); 
+    
     if(Using_superlu_ns_preconditioner)
     {
       // Concatenate the fluid block vectors
@@ -342,7 +345,7 @@ class LagrangeEnforcedflowPreconditioner
     }
     else
     {
-      std::cout << "lagrange_enfor.. not using SuperLU_ns_prec " << std::endl; 
+      //std::cout << "lagrange_enfor.. not using SuperLU_ns_prec " << std::endl; 
       
       Navier_stokes_preconditioner_pt->preconditioner_solve(r,z);
     }

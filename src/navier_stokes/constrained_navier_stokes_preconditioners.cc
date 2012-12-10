@@ -595,9 +595,9 @@ namespace oomph
 
   std::cout << "Bt matrix built: " << bt_pt->built()<< std::endl; 
   
- pause("after get bt block"); 
+// pause("after get bt block"); 
   Bt_mat_vec_pt->setup(bt_pt);
-pause("after bt mat vec setup"); 
+//pause("after bt mat vec setup"); 
   double t_Bt_MV_finish = TimingHelpers::timer();
   if(Doc_time)
    {
@@ -610,7 +610,7 @@ pause("after bt mat vec setup");
   // if the P preconditioner has not been setup
   if (P_preconditioner_pt == 0)
    {
-    pause("Setting up SuperLu for P"); 
+  //  pause("Setting up SuperLu for P"); 
     P_preconditioner_pt = new SuperLUPreconditioner;
     Using_default_p_preconditioner = true;
    }
@@ -627,7 +627,7 @@ pause("after bt mat vec setup");
     p_matrix_pt->sparse_indexed_output_with_offset(junk.str());
     oomph_info << "Done output of " << junk.str() << std::endl;
    }
-   pause("P_prec setup"); 
+ //  pause("P_prec setup"); 
    
   P_preconditioner_pt->setup(problem_pt, p_matrix_pt);
   delete p_matrix_pt;
@@ -646,7 +646,7 @@ pause("after bt mat vec setup");
   // if the F preconditioner has not been setup
   if (F_preconditioner_pt == 0)
    {
-    pause("Creating SuperLU for F_prec"); 
+//    pause("Creating SuperLU for F_prec"); 
     
     F_preconditioner_pt = new SuperLUPreconditioner;
     Using_default_f_preconditioner = true;
@@ -666,7 +666,7 @@ pause("after bt mat vec setup");
     F_block_preconditioner_pt->
      turn_into_subsidiary_block_preconditioner(this,dof_map);
     // NOTE: I HAVE TO CHANGE THIS SO IT USES MY AUGMENTED MATRIX
-    pause("F_prec setup"); 
+ //   pause("F_prec setup"); 
     
     F_block_preconditioner_pt->setup(problem_pt,matrix_pt);
    }
@@ -774,13 +774,13 @@ pause("after bt mat vec setup");
     // Multiply another_temp_vec by matrix E and stick the result into temp_vec
     temp_vec.clear();  
     QBt_mat_vec_pt->multiply(another_temp_vec, temp_vec);
-    pause("Le multiply"); 
+    //pause("Le multiply"); 
     another_temp_vec.clear();
     F_mat_vec_pt->multiply(temp_vec,another_temp_vec);
-    pause("Le duex multiply"); 
+    //pause("Le duex multiply"); 
     temp_vec.clear();
     QBt_mat_vec_pt->multiply_transpose(another_temp_vec, temp_vec);
-    pause("Le Tois multiply"); 
+    //pause("Le Tois multiply"); 
     
     
     // NOTE: The vector temp_vec now contains E P^{-1} r_p
@@ -847,10 +847,10 @@ pause("after bt mat vec setup");
   // Multiply by G (stored in Block_matrix_pt(0,1) and store
   // result in temp_vec (vector resizes itself).
   temp_vec.clear();
-  pause("Before 4th damn multiply"); 
+  //pause("Before 4th damn multiply"); 
   
   Bt_mat_vec_pt->multiply(another_temp_vec, temp_vec);
-pause("The 4th damn multiply"); 
+//pause("The 4th damn multiply"); 
 
 
   // NOTE: temp_vec now contains -G z_p
