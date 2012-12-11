@@ -506,7 +506,7 @@ class LagrangeEnforcedflowPreconditioner
 
   // These are assigned in the setup but used in
   // preconditioner_solve() to re-arrange blocks.
-  Vector<unsigned long> Dof_type_block_size;
+  Vector<unsigned long> Doftype_block_size;
   unsigned long Fluid_block_size;
   unsigned long Pressure_block_size;
   unsigned long Velocity_block_size;
@@ -1274,56 +1274,56 @@ this->block_setup(problem_pt,matrix_pt,block_setup_bcpl);
 //pause("test"); 
 
 // RAYCOMMENT
-  Doftype_list_vpl.assign(N_doftypes,0);
-  unsigned incre_i = 0;
-  // Loop through the dimensions and fill in the velocity doftypes
-  for(unsigned dim_i = 0; dim_i < elemental_dimension; dim_i++)
-  {
-    unsigned lagrange_offset = 0;
-
-    // Loop through the meshes
-    for(unsigned mesh_i = 0; mesh_i < nmesh; mesh_i++)
-    {
-      // dim_i offsets for the velocities, u=0, v=1 or w=2.
-      // lagrange_offset is used to offset the additional doftypes which are
-      // not velocity doftypes.
-      //
-      // Note that the lagrange_offset is the number of non-velocity dof types
-      // in the previous mesh. So for the first mesh, for the example above,
-      // we have: l_offset =
-      // (dim_i = 0) 0 -> 1 -> 3
-      // (dim_i = 1) 0 -> 1 -> 3
-      // (dim_i = 2) 0 -> 1 -> 3
-      //
-      // This helps offsets the velocity which would otherwise be:
-      // [0 3 6 1 4 7 2 5 8]
-      Doftype_list_vpl[incre_i] = mesh_i*elemental_dimension + dim_i + lagrange_offset;
-      lagrange_offset += N_doftype_in_mesh[mesh_i] - elemental_dimension;
-      incre_i++;
-    } // for mesh_i
-  } // dim_i
-
-  // Now fill in all the entries of the additional doftypes.
-  // Loop through the meshes
-  unsigned lagrange_offset = 0;
-  for(unsigned mesh_i = 0; mesh_i < nmesh; mesh_i++)
-  {
-    // This corresponds to getting the "one past" the w velocity, dim_i = elemental_dimension.
-    // See the previous loop for details.
-    unsigned doftype_begin = mesh_i*elemental_dimension + elemental_dimension + lagrange_offset;
-    lagrange_offset = lagrange_offset + N_doftype_in_mesh[mesh_i] - elemental_dimension;
-
-    // Move to the end of the additional doftypes. Note that this corresponds
-    // to the u velocity (dim_i = 0, see the previous loop).
-    unsigned doftype_end = (mesh_i+1)*elemental_dimension + lagrange_offset;
-
-    // Loop through the additional doftypes / pressure.
-    for(unsigned doftype_i = doftype_begin; doftype_i < doftype_end; doftype_i++)
-    {
-      Doftype_list_vpl[incre_i] = doftype_i;
-      incre_i++;
-    } // for doftype_i
-  } // for mesh_i
+//  Doftype_list_vpl.assign(N_doftypes,0);
+//  unsigned incre_i = 0;
+//  // Loop through the dimensions and fill in the velocity doftypes
+//  for(unsigned dim_i = 0; dim_i < elemental_dimension; dim_i++)
+//  {
+//    unsigned lagrange_offset = 0;
+//
+//    // Loop through the meshes
+//    for(unsigned mesh_i = 0; mesh_i < nmesh; mesh_i++)
+//    {
+//      // dim_i offsets for the velocities, u=0, v=1 or w=2.
+//      // lagrange_offset is used to offset the additional doftypes which are
+//      // not velocity doftypes.
+//      //
+//      // Note that the lagrange_offset is the number of non-velocity dof types
+//      // in the previous mesh. So for the first mesh, for the example above,
+//      // we have: l_offset =
+//      // (dim_i = 0) 0 -> 1 -> 3
+//      // (dim_i = 1) 0 -> 1 -> 3
+//      // (dim_i = 2) 0 -> 1 -> 3
+//      //
+//      // This helps offsets the velocity which would otherwise be:
+//      // [0 3 6 1 4 7 2 5 8]
+//      Doftype_list_vpl[incre_i] = mesh_i*elemental_dimension + dim_i + lagrange_offset;
+//      lagrange_offset += N_doftype_in_mesh[mesh_i] - elemental_dimension;
+//      incre_i++;
+//    } // for mesh_i
+//  } // dim_i
+//
+//  // Now fill in all the entries of the additional doftypes.
+//  // Loop through the meshes
+//  unsigned lagrange_offset = 0;
+//  for(unsigned mesh_i = 0; mesh_i < nmesh; mesh_i++)
+//  {
+//    // This corresponds to getting the "one past" the w velocity, dim_i = elemental_dimension.
+//    // See the previous loop for details.
+//    unsigned doftype_begin = mesh_i*elemental_dimension + elemental_dimension + lagrange_offset;
+//    lagrange_offset = lagrange_offset + N_doftype_in_mesh[mesh_i] - elemental_dimension;
+//
+//    // Move to the end of the additional doftypes. Note that this corresponds
+//    // to the u velocity (dim_i = 0, see the previous loop).
+//    unsigned doftype_end = (mesh_i+1)*elemental_dimension + lagrange_offset;
+//
+//    // Loop through the additional doftypes / pressure.
+//    for(unsigned doftype_i = doftype_begin; doftype_i < doftype_end; doftype_i++)
+//    {
+//      Doftype_list_vpl[incre_i] = doftype_i;
+//      incre_i++;
+//    } // for doftype_i
+//  } // for mesh_i
 
   //* //RRR_DUMP
 //  cout << "Doftype_list_vpl[i]:"<< endl;
@@ -1336,16 +1336,16 @@ this->block_setup(problem_pt,matrix_pt,block_setup_bcpl);
   // This will be used in the preconditioner_solve() function.
   // (per Newton iteration, per Newton Step) when re-arranging
   // the block vectors.
-  Dof_type_block_size.assign(N_doftypes,0);
+  Doftype_block_size.assign(N_doftypes,0);
   for(unsigned i = 0; i < N_doftypes; i++)
   {
-    //Dof_type_block_size[i] = block_distribution_pt(Doftype_list_vpl[i])->nrow_local();
-    Dof_type_block_size[i] = block_distribution_pt(i)->nrow_local();
+    //Doftype_block_size[i] = block_distribution_pt(Doftype_list_vpl[i])->nrow_local();
+    Doftype_block_size[i] = block_distribution_pt(i)->nrow_local();
   } // for N_doftypes
 
 //  for (unsigned doftype_i = 0; doftype_i < N_doftypes; doftype_i++) 
 //  {
-//    std::cout << "nrow_local: " << Dof_type_block_size[doftype_i] << std::endl; 
+//    std::cout << "nrow_local: " << Doftype_block_size[doftype_i] << std::endl; 
 //  }
 //pause("done"); 
 
@@ -1354,10 +1354,10 @@ this->block_setup(problem_pt,matrix_pt,block_setup_bcpl);
   Velocity_block_size = 0;
   for(unsigned i = 0; i < N_velocity_doftypes; i++)
   {
-    Velocity_block_size += Dof_type_block_size[i];
+    Velocity_block_size += Doftype_block_size[i];
   }
 
-  Pressure_block_size = Dof_type_block_size[N_velocity_doftypes];
+  Pressure_block_size = Doftype_block_size[N_velocity_doftypes];
 
   Fluid_block_size = Velocity_block_size + Pressure_block_size;
   
@@ -1477,14 +1477,19 @@ this->block_setup(problem_pt,matrix_pt,block_setup_bcpl);
   // Get the momentum block corresponding to the u (velocity in the
   // x direction) block.
   DenseMatrix<CRDoubleMatrix* > ax_pts(nmesh,nmesh,0);
+  // Recall the blocking scheme:
+  // 0 1 2 3  4  5  6  7  8
+  // u v w u1 v1 w1 u2 v2 w2 ...
+  // So we loop through the meshes and then get the first entry...
   for(unsigned row_i = 0; row_i < nmesh; row_i++)
   {
     for(unsigned col_i = 0; col_i < nmesh; col_i++)
     {
 //      this->get_block(Doftype_list_vpl[row_i], Doftype_list_vpl[col_i],
 //                      cr_matrix_pt,ax_pts(row_i,col_i));
-
-      this->get_block(row_i, col_i,
+      unsigned required_row_i = row_i * elemental_dimension;
+      unsigned required_col_i = col_i * elemental_dimension;
+      this->get_block(required_row_i, required_col_i,
                       cr_matrix_pt,ax_pts(row_i,col_i));
     } // for
   } //  for
@@ -1540,7 +1545,7 @@ this->block_setup(problem_pt,matrix_pt,block_setup_bcpl);
 #endif
 
 
-  streamsize cout_precision = cout.precision();
+  std::streamsize cout_precision = cout.precision();
   cout << "RAYSIGMA: " << std::setprecision(15) << Scaling_sigma
                        << std::setprecision(cout_precision)
                        << endl;
@@ -1833,7 +1838,7 @@ this->block_setup(problem_pt,matrix_pt,block_setup_bcpl);
    }
   } // loop through Lagrange multipliers.
 
-//  pause("This pause");
+//  pause("This pause 2");
 
   // AT this point, we have created the aumented fluid block in v_aug_pt
   // and the w block in w_pts.
