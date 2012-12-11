@@ -128,11 +128,11 @@ class LagrangeEnforcedflowPreconditioner
     Use_default_norm_of_f_scaling = true;
     Scaling_sigma = 0.0;
 
-    N_dof_types = 0;
-    N_lagrange_dof_types = 0;
-    N_fluid_dof_types = 0;
+    N_doftypes = 0;
+    N_lagrange_doftypes = 0;
+    N_fluid_doftypes = 0;
 
-    N_velocity_dof_types = 0;
+    N_velocity_doftypes = 0;
 
     Fluid_block_size = 0;
     Pressure_block_size = 0;
@@ -242,10 +242,10 @@ class LagrangeEnforcedflowPreconditioner
 
     // First we solve all the w blocks:
     // Loop through all of the Lagrange multipliers
-    for(unsigned l_i = 0; l_i < N_lagrange_dof_types; l_i++)
+    for(unsigned l_i = 0; l_i < N_lagrange_doftypes; l_i++)
     {
       // Get the block type of block l_i
-      unsigned l_ii = N_fluid_dof_types + l_i;
+      unsigned l_ii = N_fluid_doftypes + l_i;
 
       // Extract the block
 //      this->get_block_vector(Doftype_list_vpl[l_ii],r,temp_vec);
@@ -281,7 +281,7 @@ class LagrangeEnforcedflowPreconditioner
       unsigned long v_nrow_i = 0;
       
       // Loop through the fluid rhs block vectors
-      for(unsigned i = 0; i < N_fluid_dof_types; i++)
+      for(unsigned i = 0; i < N_fluid_doftypes; i++)
       {
 //        this->get_block_vector(Doftype_list_vpl[i],r,another_temp_vec);
         this->get_block_vector(i,r,another_temp_vec);
@@ -315,7 +315,7 @@ class LagrangeEnforcedflowPreconditioner
       unsigned long merged_vec_row_i = 0;
       // loop through the fluid block vectors
       // to extract entries from the merged vector.
-      for(unsigned i = 0; i < N_fluid_dof_types; i++)
+      for(unsigned i = 0; i < N_fluid_doftypes; i++)
       {
 //        this->get_block_vector(Doftype_list_vpl[i],r,temp_vec);
         this->get_block_vector(i,r,temp_vec);
@@ -506,10 +506,10 @@ class LagrangeEnforcedflowPreconditioner
   unsigned long Velocity_block_size;
 
   //
-  unsigned N_dof_types;
-  unsigned N_lagrange_dof_types;
-  unsigned N_fluid_dof_types;
-  unsigned N_velocity_dof_types;
+  unsigned N_doftypes;
+  unsigned N_lagrange_doftypes;
+  unsigned N_fluid_doftypes;
+  unsigned N_velocity_doftypes;
 
   DocInfo* Doc_info_pt;
 
@@ -954,7 +954,8 @@ class LagrangeEnforcedflowPreconditioner
   // The dimension of the nodes in the first element in the bulk mesh.
   unsigned nodal_dimension = Meshes_pts[0]->finite_element_pt(0)
                                          ->nodal_dimension();
-  if (elemental_dimension != nodal_dimension) {
+  if (elemental_dimension != nodal_dimension) 
+  {
     std::ostringstream error_message;
     error_message << "In the first mesh, the elemental dimension is "
                   << elemental_dimension << " with a nodal dimension of "
@@ -975,7 +976,7 @@ class LagrangeEnforcedflowPreconditioner
   }
   
   // Reset some variables:
-  N_dof_types = 0;
+  N_doftypes = 0;
   Ndoftype_in_mesh.assign(nmesh,0);
 
   // Compute the variables we just reset!
@@ -985,7 +986,7 @@ class LagrangeEnforcedflowPreconditioner
     for(unsigned mesh_i = 0; mesh_i < nmesh; mesh_i++)
     {
       unsigned mesh_ndoftype = this->ndof_types_in_mesh(mesh_i);
-      N_dof_types += mesh_ndoftype;
+      N_doftypes += mesh_ndoftype;
       Ndoftype_in_mesh[mesh_i] = mesh_ndoftype;
 //      std::cout << "mesh_i = " << mesh_i
 //                << ", mesh_ndoftype = " << mesh_ndoftype << std::endl;
@@ -995,16 +996,16 @@ class LagrangeEnforcedflowPreconditioner
   {
     // RAYEDIT - I'm not sure what to do here.
     // I'll cross the bridge when I come to it.
-    N_dof_types = this->ndof_types();
-    N_fluid_dof_types = 5; // rayupdate update this! (int)(((double)2*n_dof_types)/3);
+    N_doftypes = this->ndof_types();
+    N_fluid_doftypes = 5; // rayupdate update this! (int)(((double)2*n_dof_types)/3);
   }
 
   // Determine the number of velocity dof types
   // We assume that the velocities are constrained in all meshes.
   // i.e. in all meshes we have velocities that are constrained.
-  N_velocity_dof_types = nmesh*elemental_dimension;
-  N_fluid_dof_types = N_velocity_dof_types + 1;
-  N_lagrange_dof_types = N_dof_types - N_fluid_dof_types;
+  N_velocity_doftypes = nmesh*elemental_dimension;
+  N_fluid_doftypes = N_velocity_doftypes + 1;
+  N_lagrange_doftypes = N_doftypes - N_fluid_doftypes;
 
 
 // Testing: ///////////////////////////////////////////////////////////////////
@@ -1016,9 +1017,9 @@ class LagrangeEnforcedflowPreconditioner
 //  Ndoftype_in_mesh[1] = 4;
 //  Ndoftype_in_mesh[2] = 5;
 //  Ndoftype_in_mesh[3] = 6;
-//  N_dof_types = 19;
+//  N_doftypes = 19;
 //  elemental_dimension = 3;
-//  N_velocity_dof_types = elemental_dimension*nmesh;
+//  N_velocity_doftypes = elemental_dimension*nmesh;
 ///////////////////////////////////////////////////////////////////////////////
   
   // Re-order the dof_types.
@@ -1035,11 +1036,11 @@ class LagrangeEnforcedflowPreconditioner
   //    MESH1            MESH2            
   //
   // We have elemental_dimension and Ndoftype_in_mesh[].
-  Vector<unsigned>block_setup_vpl(N_dof_types,0);
+  Vector<unsigned>block_setup_vpl(N_doftypes,0);
 
   // Loop through the meshes
   unsigned temp_index = 0;
-  unsigned lagrange_entry = N_velocity_dof_types;
+  unsigned lagrange_entry = N_velocity_doftypes;
   for (unsigned mesh_i = 0; mesh_i < nmesh; mesh_i++) 
   {
     // Fill in the velocity doftypes of the current mesh.
@@ -1064,7 +1065,7 @@ class LagrangeEnforcedflowPreconditioner
   
   // print it:
 //  std::cout << "block_setup_vpl: " << std::endl;
-//  for (unsigned i = 0; i < N_dof_types; i++) 
+//  for (unsigned i = 0; i < N_doftypes; i++) 
 //  {
 //    std::cout << block_setup_vpl[i] << " ";
 //  }
@@ -1090,7 +1091,7 @@ class LagrangeEnforcedflowPreconditioner
   CRDoubleMatrix* cr_matrix_pt = static_cast<CRDoubleMatrix*>(matrix_pt);
 #endif
 
-//  for (unsigned block_i = 0; block_i < N_dof_types; block_i++) 
+//  for (unsigned block_i = 0; block_i < N_doftypes; block_i++) 
 //  {
 //    CRDoubleMatrix* temp_matrix_pt = 0;
 //    this->get_block(0,block_i,cr_matrix_pt,temp_matrix_pt);
@@ -1115,11 +1116,11 @@ class LagrangeEnforcedflowPreconditioner
   // [u up ut v vp vt  w wp wt ] [p] [Lp1 Lp2 Lt1]
   //
   // This is stored in Doftype_list_vpl,
-//std::cout << "N_dof_types: " << N_dof_types << std::endl; 
+//std::cout << "N_doftypes: " << N_doftypes << std::endl; 
 //pause("test"); 
 
 // RAYCOMMENT
-  Doftype_list_vpl.assign(N_dof_types,0);
+  Doftype_list_vpl.assign(N_doftypes,0);
   unsigned incre_i = 0;
   // Loop through the dimensions and fill in the velocity doftypes
   for(unsigned dim_i = 0; dim_i < elemental_dimension; dim_i++)
@@ -1172,7 +1173,7 @@ class LagrangeEnforcedflowPreconditioner
 
   //* //RRR_DUMP
 //  cout << "Doftype_list_vpl[i]:"<< endl;
-//  for(unsigned i = 0; i < N_dof_types; i++)
+//  for(unsigned i = 0; i < N_doftypes; i++)
 //  {
 //    cout << Doftype_list_vpl[i] << endl;
 //  }
@@ -1181,14 +1182,14 @@ class LagrangeEnforcedflowPreconditioner
   // This will be used in the preconditioner_solve() function.
   // (per Newton iteration, per Newton Step) when re-arranging
   // the block vectors.
-  Dof_type_block_size.assign(N_dof_types,0);
-  for(unsigned i = 0; i < N_dof_types; i++)
+  Dof_type_block_size.assign(N_doftypes,0);
+  for(unsigned i = 0; i < N_doftypes; i++)
   {
     //Dof_type_block_size[i] = block_distribution_pt(Doftype_list_vpl[i])->nrow_local();
     Dof_type_block_size[i] = block_distribution_pt(i)->nrow_local();
-  } // for N_dof_types
+  } // for N_doftypes
 
-//  for (unsigned doftype_i = 0; doftype_i < N_dof_types; doftype_i++) 
+//  for (unsigned doftype_i = 0; doftype_i < N_doftypes; doftype_i++) 
 //  {
 //    std::cout << "nrow_local: " << Dof_type_block_size[doftype_i] << std::endl; 
 //  }
@@ -1197,12 +1198,12 @@ class LagrangeEnforcedflowPreconditioner
   Fluid_block_size = 0;
   Pressure_block_size = 0;
   Velocity_block_size = 0;
-  for(unsigned i = 0; i < N_velocity_dof_types; i++)
+  for(unsigned i = 0; i < N_velocity_doftypes; i++)
   {
     Velocity_block_size += Dof_type_block_size[i];
   }
 
-  Pressure_block_size = Dof_type_block_size[N_velocity_dof_types];
+  Pressure_block_size = Dof_type_block_size[N_velocity_doftypes];
 
   Fluid_block_size = Velocity_block_size + Pressure_block_size;
   
@@ -1260,7 +1261,7 @@ class LagrangeEnforcedflowPreconditioner
     CRDoubleMatrix* inv_p_mass_pt = 0;
 
     for(unsigned dof_type_i = 0;
-        dof_type_i < N_velocity_dof_types; dof_type_i++)
+        dof_type_i < N_velocity_doftypes; dof_type_i++)
     {
       unsigned required_block = dof_type_i; //Doftype_list_vpl[dof_type_i];
       assemble_inv_press_and_veloc_mass_matrix_diagonal
@@ -1305,11 +1306,11 @@ class LagrangeEnforcedflowPreconditioner
   double ax_norm = 0.0;
   /*
   double a_norm = 0.0;
-  DenseMatrix<CRDoubleMatrix* > a_pts(N_velocity_dof_types,
-                                      N_velocity_dof_types,0);
-  for(unsigned row_i = 0; row_i < N_velocity_dof_types; row_i++)
+  DenseMatrix<CRDoubleMatrix* > a_pts(N_velocity_doftypes,
+                                      N_velocity_doftypes,0);
+  for(unsigned row_i = 0; row_i < N_velocity_doftypes; row_i++)
   {
-    for(unsigned col_i = 0; col_i < N_velocity_dof_types; col_i++)
+    for(unsigned col_i = 0; col_i < N_velocity_doftypes; col_i++)
     {
       this->get_block(Doftype_list_vpl[row_i], Doftype_list_vpl[col_i],
                       cr_matrix_pt,a_pts(row_i,col_i));
@@ -1395,11 +1396,11 @@ class LagrangeEnforcedflowPreconditioner
   ///////////////////////////////////////////////////////////////////////////
 
   // Extract the velocity block.
-  DenseMatrix<CRDoubleMatrix*> v_aug_pt(N_velocity_dof_types,
-                                        N_velocity_dof_types,0);
-  for(unsigned row_i = 0; row_i < N_velocity_dof_types; row_i++)
+  DenseMatrix<CRDoubleMatrix*> v_aug_pt(N_velocity_doftypes,
+                                        N_velocity_doftypes,0);
+  for(unsigned row_i = 0; row_i < N_velocity_doftypes; row_i++)
   {
-    for(unsigned col_i = 0; col_i < N_velocity_dof_types; col_i++)
+    for(unsigned col_i = 0; col_i < N_velocity_doftypes; col_i++)
     {
 //      this->get_block(Doftype_list_vpl[row_i], Doftype_list_vpl[col_i],
 //                      cr_matrix_pt,v_aug_pt(row_i,col_i));
@@ -1425,16 +1426,16 @@ class LagrangeEnforcedflowPreconditioner
   //       2) Add the augmentation as determined by aug. row and aug. col.
 
   // Storage for the W block.
-  DenseMatrix<CRDoubleMatrix* > w_pts(1,N_lagrange_dof_types,0);
+  DenseMatrix<CRDoubleMatrix* > w_pts(1,N_lagrange_doftypes,0);
   // Note that we do not need to store all the inverse w_i since they
   // are only used once per lagrage multiplier.
-  for(unsigned l_i = 0; l_i < N_lagrange_dof_types; l_i++)
+  for(unsigned l_i = 0; l_i < N_lagrange_doftypes; l_i++)
   {
     // Storage for the current lagrange block mass matrices.
     Vector<CRDoubleMatrix*> mm_pts;
 
     // Get the current lagrange doftype.
-    unsigned l_doftype = N_fluid_dof_types + l_i;
+    unsigned l_doftype = N_fluid_doftypes + l_i;
 
     // Store the mass matrix locations for the current lagrange block.
     Vector<unsigned> mm_locations;
@@ -1447,7 +1448,7 @@ class LagrangeEnforcedflowPreconditioner
     // block.
 
     // Go along the block columns for the current lagrange block.
-    for(unsigned col_i = 0; col_i < N_velocity_dof_types; col_i++)
+    for(unsigned col_i = 0; col_i < N_velocity_doftypes; col_i++)
     {
       // Get the block matrix for this block column.
       CRDoubleMatrix* mm_temp_pt = 0;
@@ -1697,12 +1698,12 @@ class LagrangeEnforcedflowPreconditioner
   if(Using_superlu_ns_preconditioner)
   {
 
-    DenseMatrix<CRDoubleMatrix* > f_aug_ptrs(N_fluid_dof_types,
-                                             N_fluid_dof_types,0);
+    DenseMatrix<CRDoubleMatrix* > f_aug_ptrs(N_fluid_doftypes,
+                                             N_fluid_doftypes,0);
     // put in v_aug_pt:
-    for(unsigned v_i = 0; v_i < N_velocity_dof_types; v_i++)
+    for(unsigned v_i = 0; v_i < N_velocity_doftypes; v_i++)
     {
-      for(unsigned v_j = 0; v_j < N_velocity_dof_types; v_j++)
+      for(unsigned v_j = 0; v_j < N_velocity_doftypes; v_j++)
       {
         f_aug_ptrs(v_i,v_j) = v_aug_pt(v_i,v_j);
         //stringstream v_block_name;
@@ -1712,33 +1713,33 @@ class LagrangeEnforcedflowPreconditioner
     }
 
     // Fill in the pressure block B
-    for(unsigned col_i = 0; col_i < N_fluid_dof_types; col_i++)
+    for(unsigned col_i = 0; col_i < N_fluid_doftypes; col_i++)
     {
-//      this->get_block(Doftype_list_vpl[N_velocity_dof_types],
+//      this->get_block(Doftype_list_vpl[N_velocity_doftypes],
 //                      Doftype_list_vpl[col_i],
 //                      cr_matrix_pt,
-//                      f_aug_ptrs(N_velocity_dof_types,col_i));
+//                      f_aug_ptrs(N_velocity_doftypes,col_i));
 
-      this->get_block(N_velocity_dof_types,col_i,cr_matrix_pt,
-                      f_aug_ptrs(N_velocity_dof_types,col_i));
+      this->get_block(N_velocity_doftypes,col_i,cr_matrix_pt,
+                      f_aug_ptrs(N_velocity_doftypes,col_i));
    }
 
     // Fill in the pressure block B^T
-    for(unsigned row_i = 0; row_i < N_fluid_dof_types; row_i++)
+    for(unsigned row_i = 0; row_i < N_fluid_doftypes; row_i++)
     {
 //      this->get_block(Doftype_list_vpl[row_i],
-//                      Doftype_list_vpl[N_velocity_dof_types],
+//                      Doftype_list_vpl[N_velocity_doftypes],
 //                      cr_matrix_pt,
-//                      f_aug_ptrs(row_i,N_velocity_dof_types));
+//                      f_aug_ptrs(row_i,N_velocity_doftypes));
 
-      this->get_block(row_i,N_velocity_dof_types,cr_matrix_pt,
-                      f_aug_ptrs(row_i,N_velocity_dof_types));
+      this->get_block(row_i,N_velocity_doftypes,cr_matrix_pt,
+                      f_aug_ptrs(row_i,N_velocity_doftypes));
    }
    // output:
    /*
-    for(unsigned v_i = 0; v_i < N_fluid_dof_types; v_i++)
+    for(unsigned v_i = 0; v_i < N_fluid_doftypes; v_i++)
     {
-      for(unsigned v_j = 0; v_j < N_fluid_dof_types; v_j++)
+      for(unsigned v_j = 0; v_j < N_fluid_doftypes; v_j++)
       {
         stringstream v_block_name;
         v_block_name << "f_1aug_" << v_i << v_j;
@@ -1751,9 +1752,9 @@ class LagrangeEnforcedflowPreconditioner
     cat(f_aug_ptrs,f_aug_pt);
 
     // delete the sub F pointers
-    for(unsigned row_i = 0; row_i < N_fluid_dof_types; row_i++)
+    for(unsigned row_i = 0; row_i < N_fluid_doftypes; row_i++)
     {
-      for(unsigned col_i = 0; col_i < N_fluid_dof_types; col_i++)
+      for(unsigned col_i = 0; col_i < N_fluid_doftypes; col_i++)
       {
         delete f_aug_ptrs(row_i, col_i);
         f_aug_ptrs(row_i, col_i) = 0;
@@ -1782,9 +1783,9 @@ class LagrangeEnforcedflowPreconditioner
     //CRDoubleMatrix* f_pt = 0;
     cat(v_aug_pt,prec_blocks[0]);
     // delete v_aug_pt
-    for (unsigned row_i = 0; row_i < N_velocity_dof_types; row_i++)
+    for (unsigned row_i = 0; row_i < N_velocity_doftypes; row_i++)
     {
-      for (unsigned col_i = 0; col_i < N_velocity_dof_types; col_i++)
+      for (unsigned col_i = 0; col_i < N_velocity_doftypes; col_i++)
       {
         delete v_aug_pt(row_i,col_i);
         v_aug_pt(row_i,col_i) = 0;
@@ -1794,20 +1795,20 @@ class LagrangeEnforcedflowPreconditioner
     // Extract the b block: ///////////////////////////////////////////////////
     double t_get_B_start = TimingHelpers::timer();
 
-    DenseMatrix<CRDoubleMatrix* > b_pts(1,N_velocity_dof_types,0);
+    DenseMatrix<CRDoubleMatrix* > b_pts(1,N_velocity_doftypes,0);
 
     // Encapsulation of the variable row_i
     {
       // The pressure block is located here in the vpl ordering.
-      unsigned row_i = N_velocity_dof_types;
+      unsigned row_i = N_velocity_doftypes;
 
       // Loop through the velocity blocks columns.
-      for(unsigned col_i = 0; col_i < N_velocity_dof_types; col_i++)
+      for(unsigned col_i = 0; col_i < N_velocity_doftypes; col_i++)
       {
 //        this->get_block(Doftype_list_vpl[row_i], Doftype_list_vpl[col_i],
 //                        cr_matrix_pt,b_pts(0,col_i));
         this->get_block(row_i,col_i,cr_matrix_pt,b_pts(0,col_i));
-     }//for(unsigned col_i = 0; col_i < N_velocity_dof_types; col_i++)
+     }//for(unsigned col_i = 0; col_i < N_velocity_doftypes; col_i++)
     }
 
     double t_get_B_finish = TimingHelpers::timer();
@@ -1829,7 +1830,7 @@ class LagrangeEnforcedflowPreconditioner
     }
 
     // delete the sub-blocks
-    for(unsigned col_i = 0; col_i < N_velocity_dof_types; col_i++)
+    for(unsigned col_i = 0; col_i < N_velocity_doftypes; col_i++)
     {
       delete b_pts(0,col_i);
       b_pts(0,col_i) = 0;
@@ -1837,17 +1838,17 @@ class LagrangeEnforcedflowPreconditioner
 
     // Extract the bt block: //////////////////////////////////////////////////
     // (the discrete divergence block)
-    DenseMatrix<CRDoubleMatrix* > bt_pts(N_velocity_dof_types,1,0);
+    DenseMatrix<CRDoubleMatrix* > bt_pts(N_velocity_doftypes,1,0);
 
     double t_get_Bt_start = TimingHelpers::timer();
     {
-      unsigned col_i = N_velocity_dof_types;
-      for(unsigned row_i = 0; row_i < N_velocity_dof_types; row_i++)
+      unsigned col_i = N_velocity_doftypes;
+      for(unsigned row_i = 0; row_i < N_velocity_doftypes; row_i++)
       {
 //        this->get_block(Doftype_list_vpl[row_i], Doftype_list_vpl[col_i],
 //                        cr_matrix_pt,bt_pts(row_i,0));
         this->get_block(row_i,col_i,cr_matrix_pt,bt_pts(row_i,0));
-     }//for(unsigned row_i = 0; row_i < N_velocity_dof_types; row_i++)
+     }//for(unsigned row_i = 0; row_i < N_velocity_doftypes; row_i++)
     }
 
     double t_get_Bt_finish = TimingHelpers::timer();
@@ -1870,7 +1871,7 @@ class LagrangeEnforcedflowPreconditioner
     }
 
     // Delete sub-blocks
-    for(unsigned row_i = 0; row_i < N_velocity_dof_types; row_i++)
+    for(unsigned row_i = 0; row_i < N_velocity_doftypes; row_i++)
     {
       delete bt_pts(row_i,0);
       bt_pts(row_i,0) = 0;
@@ -1879,9 +1880,9 @@ class LagrangeEnforcedflowPreconditioner
 
     // output:
    /*
-    for(unsigned v_i = 0; v_i < N_fluid_dof_types; v_i++)
+    for(unsigned v_i = 0; v_i < N_fluid_doftypes; v_i++)
     {
-      for(unsigned v_j = 0; v_j < N_fluid_dof_types; v_j++)
+      for(unsigned v_j = 0; v_j < N_fluid_doftypes; v_j++)
       {
         stringstream v_block_name;
         v_block_name << "f_1aug_" << v_i << v_j;
@@ -1892,8 +1893,8 @@ class LagrangeEnforcedflowPreconditioner
 */
 
 
-    Vector<unsigned> ns_dof_list(N_fluid_dof_types,0);
-    for (unsigned i = 0; i < N_fluid_dof_types; i++)
+    Vector<unsigned> ns_dof_list(N_fluid_doftypes,0);
+    for (unsigned i = 0; i < N_fluid_doftypes; i++)
     {
       ns_dof_list[i]= Doftype_list_vpl[i];
 //      std::cout << "ns_dof_list: " << ns_dof_list[i] << std::endl; 
@@ -1953,10 +1954,10 @@ class LagrangeEnforcedflowPreconditioner
 // CREATING THE AUGMENTED F BLOCK
 
   // What we have done already:
-  // Doftype_list_vpl(N_dof_types): constains the permutations
-  // mm_pointers(N_lagrange_dof_types,elemental_dimension): the mm from L block
-  // w_pts(1,N_lagrange_dof_types): the w_i's
-  // invw_pts(1,N_lagrange_dof_types): inverse of above
+  // Doftype_list_vpl(N_doftypes): constains the permutations
+  // mm_pointers(N_lagrange_doftypes,elemental_dimension): the mm from L block
+  // w_pts(1,N_lagrange_doftypes): the w_i's
+  // invw_pts(1,N_lagrange_doftypes): inverse of above
 
  // Note that we shall use the re-arranged order of the block dof types.
  // i.e. we have U Uc V Vc W Wc P L1, etc...
@@ -1964,8 +1965,8 @@ class LagrangeEnforcedflowPreconditioner
 
   // Solver for the W block.
   double t_w_prec_start = TimingHelpers::timer();
-  W_preconditioner_pts.resize(N_lagrange_dof_types);
-  for(unsigned l_i = 0; l_i < N_lagrange_dof_types; l_i++)
+  W_preconditioner_pts.resize(N_lagrange_doftypes);
+  for(unsigned l_i = 0; l_i < N_lagrange_doftypes; l_i++)
   {
     if(Using_superlu_w_preconditioner)
     {
@@ -1989,8 +1990,8 @@ class LagrangeEnforcedflowPreconditioner
                << t_w_prec_time << "\n";
    }
   
-  // Delete w_pts(0,N_lagrange_dof_types)
-  for (unsigned l_i = 0; l_i < N_lagrange_dof_types; l_i++) 
+  // Delete w_pts(0,N_lagrange_doftypes)
+  for (unsigned l_i = 0; l_i < N_lagrange_doftypes; l_i++) 
   {
     delete w_pts(0,l_i);
   }
