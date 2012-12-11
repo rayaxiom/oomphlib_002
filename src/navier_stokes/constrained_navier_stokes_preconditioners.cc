@@ -247,13 +247,13 @@ namespace oomph
 
   this->block_setup(problem_pt,matrix_pt);
 
-//  for (unsigned i = 0; i < 5; i++) 
-//  {
-//    CRDoubleMatrix* temp_mat_pt = 0;
-//    this->get_block(0,i,cr_matrix_pt,temp_mat_pt);
-//    unsigned temp_mat_ncol = temp_mat_pt->ncol();
+  for (unsigned i = 0; i < 5; i++) 
+  {
+    CRDoubleMatrix* temp_mat_pt = 0;
+    this->get_block(0,i,cr_matrix_pt,temp_mat_pt);
+    unsigned temp_mat_ncol = temp_mat_pt->ncol();
 //    std::cout << "ncol:::: " << temp_mat_ncol << std::endl; 
-//  }
+  }
 //pause("BUBBLE POP");
 
   double t_block_finish = TimingHelpers::timer();

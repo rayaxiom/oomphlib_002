@@ -2055,7 +2055,7 @@ this->block_setup(problem_pt,matrix_pt,block_setup_bcpl);
     Vector<unsigned> ns_dof_list(N_fluid_doftypes,0);
     for (unsigned i = 0; i < N_fluid_doftypes; i++)
     {
-      ns_dof_list[i]= Doftype_list_vpl[i];
+      ns_dof_list[i]= Doftype_list_bcpl[i];
 //      std::cout << "ns_dof_list: " << ns_dof_list[i] << std::endl; 
     }
 
