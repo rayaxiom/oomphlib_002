@@ -1906,6 +1906,7 @@ this->block_setup(problem_pt,matrix_pt,block_setup_bcpl);
       }
     }
     // */
+
     CRDoubleMatrix* f_aug_pt = 0;
 
     cat(f_aug_ptrs,f_aug_pt);
@@ -1935,128 +1936,167 @@ this->block_setup(problem_pt,matrix_pt,block_setup_bcpl);
     //////////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////
 
-    // Must be in the order: F, B, Bt
-    Vector<CRDoubleMatrix*> prec_blocks(3,0);
-
-    // F block:
-    //CRDoubleMatrix* f_pt = 0;
-    cat(v_aug_pt,prec_blocks[0]);
-    // delete v_aug_pt
-    for (unsigned row_i = 0; row_i < N_velocity_doftypes; row_i++)
+    DenseMatrix<CRDoubleMatrix* > f_aug_ptrs(N_fluid_doftypes,
+        N_fluid_doftypes,0);
+    // put in v_aug_pt:
+    for(unsigned v_i = 0; v_i < N_velocity_doftypes; v_i++)
     {
-      for (unsigned col_i = 0; col_i < N_velocity_doftypes; col_i++)
+      for(unsigned v_j = 0; v_j < N_velocity_doftypes; v_j++)
       {
-        delete v_aug_pt(row_i,col_i);
-        v_aug_pt(row_i,col_i) = 0;
+        f_aug_ptrs(v_i,v_j) = v_aug_pt(v_i,v_j);
+        //stringstream v_block_name;
+        //v_block_name << "f_1aug_" << v_i << v_j;
+        //f_aug_ptrs(v_i,v_j)->sparse_indexed_output(v_block_name.str());
       }
     }
 
-    // Extract the b block: ///////////////////////////////////////////////////
-    double t_get_B_start = TimingHelpers::timer();
-
-    DenseMatrix<CRDoubleMatrix* > b_pts(1,N_velocity_doftypes,0);
-
-    // Encapsulation of the variable row_i
+    // Fill in the pressure block B
+    for(unsigned col_i = 0; col_i < N_fluid_doftypes; col_i++)
     {
-      // The pressure block is located here in the vpl ordering.
-      unsigned row_i = N_velocity_doftypes;
+      //      this->get_block(Doftype_list_vpl[N_velocity_doftypes],
+      //                      Doftype_list_vpl[col_i],
+      //                      cr_matrix_pt,
+      //                      f_aug_ptrs(N_velocity_doftypes,col_i));
 
-      // Loop through the velocity blocks columns.
-      for(unsigned col_i = 0; col_i < N_velocity_doftypes; col_i++)
-      {
-//        this->get_block(Doftype_list_vpl[row_i], Doftype_list_vpl[col_i],
-//                        cr_matrix_pt,b_pts(0,col_i));
-        this->get_block(row_i,col_i,cr_matrix_pt,b_pts(0,col_i));
-     }//for(unsigned col_i = 0; col_i < N_velocity_doftypes; col_i++)
+      this->get_block(N_velocity_doftypes,col_i,cr_matrix_pt,
+          f_aug_ptrs(N_velocity_doftypes,col_i));
     }
 
-    double t_get_B_finish = TimingHelpers::timer();
-
-    if(Doc_time)
+    // Fill in the pressure block B^T
+    for(unsigned row_i = 0; row_i < N_fluid_doftypes; row_i++)
     {
-      double t_get_B_time = t_get_B_finish - t_get_B_start;
-      cout << "t_get_B_time: " << t_get_B_time << "\n";
+      //      this->get_block(Doftype_list_vpl[row_i],
+      //                      Doftype_list_vpl[N_velocity_doftypes],
+      //                      cr_matrix_pt,
+      //                      f_aug_ptrs(row_i,N_velocity_doftypes));
+
+      this->get_block(row_i,N_velocity_doftypes,cr_matrix_pt,
+          f_aug_ptrs(row_i,N_velocity_doftypes));
     }
 
-    // merge the sub-blocks.
-    double t_merge_B_start = TimingHelpers::timer();
-    cat(b_pts,prec_blocks[1]);
-    double t_merge_B_finish = TimingHelpers::timer();
-    if(Doc_time)
-    {
-      double t_merge_B_time = t_merge_B_finish - t_merge_B_start;
-      cout << "t_merge_B_time: " << t_merge_B_time << "\n";
-    }
-
-    // delete the sub-blocks
-    for(unsigned col_i = 0; col_i < N_velocity_doftypes; col_i++)
-    {
-      delete b_pts(0,col_i);
-      b_pts(0,col_i) = 0;
-    }
-
-    // Extract the bt block: //////////////////////////////////////////////////
-    // (the discrete divergence block)
-    DenseMatrix<CRDoubleMatrix* > bt_pts(N_velocity_doftypes,1,0);
-
-    double t_get_Bt_start = TimingHelpers::timer();
-    {
-      unsigned col_i = N_velocity_doftypes;
-      for(unsigned row_i = 0; row_i < N_velocity_doftypes; row_i++)
-      {
-//        this->get_block(Doftype_list_vpl[row_i], Doftype_list_vpl[col_i],
-//                        cr_matrix_pt,bt_pts(row_i,0));
-        this->get_block(row_i,col_i,cr_matrix_pt,bt_pts(row_i,0));
-     }//for(unsigned row_i = 0; row_i < N_velocity_doftypes; row_i++)
-    }
-
-    double t_get_Bt_finish = TimingHelpers::timer();
-
-    if(Doc_time)
-      {
-        double t_get_Bt_time = t_get_Bt_finish - t_get_Bt_start;
-        cout << "t_get_Bt_time: " << t_get_Bt_time << "\n";
-      }
-
-    double t_merge_Bt_start = TimingHelpers::timer();
-    cat(bt_pts,prec_blocks[2]);
-    double t_merge_Bt_finish = TimingHelpers::timer();
-
-    prec_blocks[2]->sparse_indexed_output("Bt");
-    if(Doc_time)
-    {
-      double t_merge_Bt_time = t_merge_Bt_finish - t_merge_Bt_start;
-      cout << "t_merge_Bt_time: " << t_merge_Bt_time << "\n";
-    }
-
-    // Delete sub-blocks
-    for(unsigned row_i = 0; row_i < N_velocity_doftypes; row_i++)
-    {
-      delete bt_pts(row_i,0);
-      bt_pts(row_i,0) = 0;
-    }
-
-
-    // output:
-   /*
-    for(unsigned v_i = 0; v_i < N_fluid_doftypes; v_i++)
-    {
-      for(unsigned v_j = 0; v_j < N_fluid_doftypes; v_j++)
-      {
-        stringstream v_block_name;
-        v_block_name << "f_1aug_" << v_i << v_j;
-        f_aug_ptrs(v_i,v_j)->sparse_indexed_output(v_block_name.str());
-      }
-    }
-
-*/
-
+//
+//    // Must be in the order: F, B, Bt
+//    Vector<CRDoubleMatrix*> prec_blocks(3,0);
+//
+//    // F block:
+//    //CRDoubleMatrix* f_pt = 0;
+//    cat(v_aug_pt,prec_blocks[0]);
+//    // delete v_aug_pt
+//    for (unsigned row_i = 0; row_i < N_velocity_doftypes; row_i++)
+//    {
+//      for (unsigned col_i = 0; col_i < N_velocity_doftypes; col_i++)
+//      {
+//        delete v_aug_pt(row_i,col_i);
+//        v_aug_pt(row_i,col_i) = 0;
+//      }
+//    }
+//
+//    // Extract the b block: ///////////////////////////////////////////////////
+//    double t_get_B_start = TimingHelpers::timer();
+//
+//    DenseMatrix<CRDoubleMatrix* > b_pts(1,N_velocity_doftypes,0);
+//
+//    // Encapsulation of the variable row_i
+//    {
+//      // The pressure block is located here in the vpl ordering.
+//      unsigned row_i = N_velocity_doftypes;
+//
+//      // Loop through the velocity blocks columns.
+//      for(unsigned col_i = 0; col_i < N_velocity_doftypes; col_i++)
+//      {
+//        //        this->get_block(Doftype_list_vpl[row_i], Doftype_list_vpl[col_i],
+//        //                        cr_matrix_pt,b_pts(0,col_i));
+//        this->get_block(row_i,col_i,cr_matrix_pt,b_pts(0,col_i));
+//      }//for(unsigned col_i = 0; col_i < N_velocity_doftypes; col_i++)
+//    }
+//
+//    double t_get_B_finish = TimingHelpers::timer();
+//
+//    if(Doc_time)
+//    {
+//      double t_get_B_time = t_get_B_finish - t_get_B_start;
+//      cout << "t_get_B_time: " << t_get_B_time << "\n";
+//    }
+//
+//    // merge the sub-blocks.
+//    double t_merge_B_start = TimingHelpers::timer();
+//    cat(b_pts,prec_blocks[1]);
+//    double t_merge_B_finish = TimingHelpers::timer();
+//    if(Doc_time)
+//    {
+//      double t_merge_B_time = t_merge_B_finish - t_merge_B_start;
+//      cout << "t_merge_B_time: " << t_merge_B_time << "\n";
+//    }
+//
+//    // delete the sub-blocks
+//    for(unsigned col_i = 0; col_i < N_velocity_doftypes; col_i++)
+//    {
+//      delete b_pts(0,col_i);
+//      b_pts(0,col_i) = 0;
+//    }
+//
+//    // Extract the bt block: //////////////////////////////////////////////////
+//    // (the discrete divergence block)
+//    DenseMatrix<CRDoubleMatrix* > bt_pts(N_velocity_doftypes,1,0);
+//
+//    double t_get_Bt_start = TimingHelpers::timer();
+//    {
+//      unsigned col_i = N_velocity_doftypes;
+//      for(unsigned row_i = 0; row_i < N_velocity_doftypes; row_i++)
+//      {
+//        //        this->get_block(Doftype_list_vpl[row_i], Doftype_list_vpl[col_i],
+//        //                        cr_matrix_pt,bt_pts(row_i,0));
+//        this->get_block(row_i,col_i,cr_matrix_pt,bt_pts(row_i,0));
+//      }//for(unsigned row_i = 0; row_i < N_velocity_doftypes; row_i++)
+//    }
+//
+//    double t_get_Bt_finish = TimingHelpers::timer();
+//
+//    if(Doc_time)
+//    {
+//      double t_get_Bt_time = t_get_Bt_finish - t_get_Bt_start;
+//      cout << "t_get_Bt_time: " << t_get_Bt_time << "\n";
+//    }
+//
+//    double t_merge_Bt_start = TimingHelpers::timer();
+//    cat(bt_pts,prec_blocks[2]);
+//    double t_merge_Bt_finish = TimingHelpers::timer();
+//
+//    prec_blocks[2]->sparse_indexed_output("Bt");
+//    if(Doc_time)
+//    {
+//      double t_merge_Bt_time = t_merge_Bt_finish - t_merge_Bt_start;
+//      cout << "t_merge_Bt_time: " << t_merge_Bt_time << "\n";
+//    }
+//
+//    // Delete sub-blocks
+//    for(unsigned row_i = 0; row_i < N_velocity_doftypes; row_i++)
+//    {
+//      delete bt_pts(row_i,0);
+//      bt_pts(row_i,0) = 0;
+//    }
+//
+//
+//    // output:
+//    /*
+//       for(unsigned v_i = 0; v_i < N_fluid_doftypes; v_i++)
+//       {
+//       for(unsigned v_j = 0; v_j < N_fluid_doftypes; v_j++)
+//       {
+//       stringstream v_block_name;
+//       v_block_name << "f_1aug_" << v_i << v_j;
+//       f_aug_ptrs(v_i,v_j)->sparse_indexed_output(v_block_name.str());
+//       }
+//       }
+//
+//*/
+//
 
     Vector<unsigned> ns_dof_list(N_fluid_doftypes,0);
     for (unsigned i = 0; i < N_fluid_doftypes; i++)
     {
       ns_dof_list[i]= Doftype_list_bcpl[i];
-//      std::cout << "ns_dof_list: " << ns_dof_list[i] << std::endl; 
+      //      std::cout << "ns_dof_list: " << ns_dof_list[i] << std::endl; 
     }
 
     // Determine whether the NS preconditioner is a block preconditioner (and
@@ -2064,21 +2104,21 @@ this->block_setup(problem_pt,matrix_pt,block_setup_bcpl);
 #ifdef PARANOID
     BlockPreconditioner<CRDoubleMatrix>* Navier_stokes_block_preconditioner_pt
       = dynamic_cast<BlockPreconditioner<CRDoubleMatrix>* >
-        (Navier_stokes_preconditioner_pt);
+      (Navier_stokes_preconditioner_pt);
     if(Navier_stokes_block_preconditioner_pt == 0)
     {
       std::ostringstream error_message;
       error_message << "Navier stokes preconditioner is not a block\n"
-                    << "preconditioner." << std::endl;
+        << "preconditioner." << std::endl;
       throw OomphLibError(
-       error_message.str(),
-       "LagrangeEnforcedflowPreconditioner::setup()",
-       OOMPH_EXCEPTION_LOCATION);
+          error_message.str(),
+          "LagrangeEnforcedflowPreconditioner::setup()",
+          OOMPH_EXCEPTION_LOCATION);
     }
 #else
     BlockPreconditioner<CRDoubleMatrix>* Navier_stokes_block_preconditioner_pt
       = static_cast<BlockPreconditioner<CRDoubleMatrix>* >
-        (Navier_stokes_preconditioner_pt);
+      (Navier_stokes_preconditioner_pt);
 #endif
 
 
@@ -2086,11 +2126,13 @@ this->block_setup(problem_pt,matrix_pt,block_setup_bcpl);
     Navier_stokes_block_preconditioner_pt
       ->turn_into_subsidiary_block_preconditioner(this, ns_dof_list);
 
-//    Navier_stokes_block_preconditioner_pt
-//      ->set_master_doftype_ordering(Doftype_list_vpl);
+    //    Navier_stokes_block_preconditioner_pt
+    //      ->set_master_doftype_ordering(Doftype_list_vpl);
 
+//    Navier_stokes_block_preconditioner_pt
+//      ->set_prec_blocks(prec_blocks);
     Navier_stokes_block_preconditioner_pt
-      ->set_prec_blocks(prec_blocks);
+      ->set_prec_blocks(f_aug_ptrs);
 
     Navier_stokes_block_preconditioner_pt
       ->setup(problem_pt,matrix_pt);
@@ -2101,8 +2143,8 @@ this->block_setup(problem_pt,matrix_pt,block_setup_bcpl);
 
     //delete j_aug_pt;
     //j_aug_pt = 0;
-//pause("dat pause");
-     // To do
+    //pause("dat pause");
+    // To do
 
   }
 //  */
@@ -2110,17 +2152,6 @@ this->block_setup(problem_pt,matrix_pt,block_setup_bcpl);
 //CLEAR w_pts
 
 ////////////////////////////////////////////////////////////////////////////////
-// CREATING THE AUGMENTED F BLOCK
-
-  // What we have done already:
-  // Doftype_list_vpl(N_doftypes): constains the permutations
-  // mm_pointers(N_lagrange_doftypes,elemental_dimension): the mm from L block
-  // w_pts(1,N_lagrange_doftypes): the w_i's
-  // invw_pts(1,N_lagrange_doftypes): inverse of above
-
- // Note that we shall use the re-arranged order of the block dof types.
- // i.e. we have U Uc V Vc W Wc P L1, etc...
-
 
   // Solver for the W block.
   double t_w_prec_start = TimingHelpers::timer();
@@ -2143,12 +2174,12 @@ this->block_setup(problem_pt,matrix_pt,block_setup_bcpl);
   }
   double t_w_prec_finish = TimingHelpers::timer();
   if(Doc_time)
-   {
+  {
     double t_w_prec_time = t_w_prec_finish - t_w_prec_start;
     cout << "t_w_prec_time: "
-               << t_w_prec_time << "\n";
-   }
-  
+      << t_w_prec_time << "\n";
+  }
+
   // Delete w_pts(0,N_lagrange_doftypes)
   for (unsigned l_i = 0; l_i < N_lagrange_doftypes; l_i++) 
   {

@@ -228,7 +228,7 @@ namespace oomph
    void preconditioner_solve(const DoubleVector &r, DoubleVector &z);
  
    /// \short Setup the preconditioner 
-    virtual void setup(Problem* problem_pt, DoubleMatrixBase* matrix_pt);
+   virtual void setup(Problem* problem_pt, DoubleMatrixBase* matrix_pt);
  
    /// \short Access function to the i-th subsidiary preconditioner,
    /// i.e. the preconditioner for the i-th block.
@@ -236,10 +236,10 @@ namespace oomph
       const
     {return Diagonal_block_preconditioner_pt[i];}
 
-    /// \short Write access function to the i-th subsidiary preconditioner,
-    /// i.e. the preconditioner for the i-th block.
-    Preconditioner*& subsidiary_block_preconditioner_pt(const unsigned& i)
-    {return Diagonal_block_preconditioner_pt[i];}
+   /// \short Write access function to the i-th subsidiary preconditioner,
+   /// i.e. the preconditioner for the i-th block.
+   Preconditioner*& subsidiary_block_preconditioner_pt(const unsigned& i)
+   {return Diagonal_block_preconditioner_pt[i];}
    
 #ifdef OOMPH_HAS_MPI
    /// \short Use two level parallelisation 
@@ -291,14 +291,14 @@ namespace oomph
    // clean the memory
    this->clean_up_memory();
 
-    // Set the problem pointer
-    BlockPreconditioner<MATRIX>::problem_pt() = problem_pt;
+   // Set the problem pointer
+   BlockPreconditioner<MATRIX>::problem_pt() = problem_pt;
 
     // Cast to the real type of the matrix (as specified by template)
    MATRIX* cast_matrix_pt=dynamic_cast<MATRIX*>(matrix_pt);
   
 #ifdef PARANOID
-    // Check the cast was successful
+   // Check the cast was successful
    if (cast_matrix_pt==0)
     {
         std::ostringstream error_msg;

@@ -127,7 +127,7 @@ namespace oomph
      
      Master_doftype_order.resize(0);
 
-     Prec_blocks.resize(0);
+     //Prec_blocks.resize(0);
     }
 
    /// Destructor (empty)
@@ -152,30 +152,30 @@ namespace oomph
     MATRIX* matrix_pt() const {return Matrix_pt;}
 
        // RAYRAY Set the blocks for the Navier Stokes preconditioner
-   void set_prec_blocks(Vector<CRDoubleMatrix*> &required_prec_blocks)
+   void set_prec_blocks(DenseMatrix<CRDoubleMatrix*> &required_prec_blocks)
    { 
 #ifdef PARANOID
-     if(required_prec_blocks.size() != 3)                                                   
-     {                                                                           
-       std::ostringstream error_message;                                         
-       error_message << "There must be three blocks for the\n"
-                     << "LSC preconditioner, for F, B and Bt" << std::endl;          
-       throw OomphLibError(error_message.str(),                                  
-                          "ConstrainedNavierStokesSchurComplementPreconditioner",                      
-                          OOMPH_EXCEPTION_LOCATION);                            
-     }
-     for (unsigned block_i = 0; block_i < 3; block_i++) 
-     {
-       if (required_prec_blocks[block_i] == 0) 
-       {
-       std::ostringstream error_message;                                         
-       error_message << "Block " << block_i << " is not set." << std::endl;
-       throw OomphLibError(error_message.str(),                                  
-                          "ConstrainedNavierStokesSchurComplementPreconditioner",                      
-                          OOMPH_EXCEPTION_LOCATION); 
-       }
-     }
-
+//     if(required_prec_blocks.size() != 3)                                                   
+//     {                                                                           
+//       std::ostringstream error_message;                                         
+//       error_message << "There must be three blocks for the\n"
+//                     << "LSC preconditioner, for F, B and Bt" << std::endl;          
+//       throw OomphLibError(error_message.str(),                                  
+//                          "ConstrainedNavierStokesSchurComplementPreconditioner",                      
+//                          OOMPH_EXCEPTION_LOCATION);                            
+//     }
+//     for (unsigned block_i = 0; block_i < 3; block_i++) 
+//     {
+//       if (required_prec_blocks[block_i] == 0) 
+//       {
+//       std::ostringstream error_message;                                         
+//       error_message << "Block " << block_i << " is not set." << std::endl;
+//       throw OomphLibError(error_message.str(),                                  
+//                          "ConstrainedNavierStokesSchurComplementPreconditioner",                      
+//                          OOMPH_EXCEPTION_LOCATION); 
+//       }
+//     }
+//
      if(is_master_block_preconditioner())
      {
 		  std::ostringstream error_message;
@@ -187,6 +187,8 @@ namespace oomph
      }
 #endif
      Prec_blocks = required_prec_blocks;
+//std::cout << "Has been set properly." << std::endl; 
+//pause("done prec set"); 
 
      // set bool Prec_blocks_has_been_set = true - will I ever have to set it to
      // false?
@@ -1062,7 +1064,7 @@ namespace oomph
     // where."
     Vector<unsigned> Master_doftype_order;
 
-    Vector<CRDoubleMatrix*> Prec_blocks;
+    DenseMatrix<CRDoubleMatrix*> Prec_blocks;
 
     private:
 

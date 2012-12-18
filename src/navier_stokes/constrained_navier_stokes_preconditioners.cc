@@ -171,14 +171,14 @@ namespace oomph
                      	"ConstrainedNavierStokesSchurComplementPreconditioner::setup()",
                         OOMPH_EXCEPTION_LOCATION);
    }
-  if (Prec_blocks.size() == 0)
-   {
-    std::ostringstream error_message;
-    error_message << "set_prec_blocks(...) function has not been called.";
-    throw OomphLibError(error_message.str(),
-                     	"ConstrainedNavierStokesSchurComplementPreconditioner::setup()",
-                        OOMPH_EXCEPTION_LOCATION);
-   }
+//  if (Prec_blocks.size() == 0)
+//   {
+//    std::ostringstream error_message;
+//    error_message << "set_prec_blocks(...) function has not been called.";
+//    throw OomphLibError(error_message.str(),
+//                     	"ConstrainedNavierStokesSchurComplementPreconditioner::setup()",
+//                        OOMPH_EXCEPTION_LOCATION);
+//   }
 //  if (Master_doftype_order.size() == 0)
 //   {
 //    std::ostringstream error_message;
@@ -252,9 +252,20 @@ namespace oomph
     CRDoubleMatrix* temp_mat_pt = 0;
     this->get_block(0,i,cr_matrix_pt,temp_mat_pt);
     unsigned temp_mat_ncol = temp_mat_pt->ncol();
-//    std::cout << "ncol:::: " << temp_mat_ncol << std::endl; 
+    std::cout << "ncol:::: " << temp_mat_ncol << std::endl; 
   }
-//pause("BUBBLE POP");
+
+  std::cout << "new testsss: \n" << std::endl;
+  unsigned pb_nrow = Prec_blocks.nrow();
+  unsigned pb_ncol = Prec_blocks.ncol();
+  for (unsigned i = 0; i < pb_ncol; i++) 
+  {
+    unsigned subblock_ncol = Prec_blocks(0,i)->ncol();
+    std::cout << "ncol from pb:" << subblock_ncol << std::endl; 
+    
+  }
+  
+pause("BUBBLE POP");
 
   double t_block_finish = TimingHelpers::timer();
   double block_setup_time = t_block_finish - t_block_start;
@@ -277,8 +288,11 @@ namespace oomph
   // Get B (the divergence block)
   // RAYRAY
   //double t_get_B_start = TimingHelpers::timer();
-  CRDoubleMatrix* b_pt = Prec_blocks[1];
-  //this->get_block(1,0,cr_matrix_pt,b_pt);
+  
+  // RAYHERE
+  //CRDoubleMatrix* b_pt = Prec_blocks[1];
+  CRDoubleMatrix* b_pt = 0;
+  this->get_block(1,0,cr_matrix_pt,b_pt);
   //double t_get_B_finish = TimingHelpers::timer();
   //if(Doc_time)
   // {
@@ -422,9 +436,11 @@ namespace oomph
   /////////////////////////////////////////////////////////////////////////////
   
   // Get gradient matrix Bt
-  CRDoubleMatrix* bt_pt = Prec_blocks[2];
+  // RAYHERE
+  //CRDoubleMatrix* bt_pt = Prec_blocks[2];
+  CRDoubleMatrix* bt_pt = 0;
   double t_get_Bt_start = TimingHelpers::timer();
-  //this->get_block(0,1,cr_matrix_pt,bt_pt);
+  this->get_block(0,1,cr_matrix_pt,bt_pt);
   double t_get_Bt_finish = TimingHelpers::timer();
   if(Doc_time)
    {
@@ -542,9 +558,9 @@ namespace oomph
 
 
   // Get momentum block F
-  CRDoubleMatrix* f_pt = Prec_blocks[0];
+  CRDoubleMatrix* f_pt = 0; //Prec_blocks[0];
   double t_get_F_start = TimingHelpers::timer();
-//  this->get_block(0,0,cr_matrix_pt,f_pt);
+  this->get_block(0,0,cr_matrix_pt,f_pt);
   double t_get_F_finish = TimingHelpers::timer();
   if(Doc_time)
    {
@@ -574,11 +590,11 @@ namespace oomph
   // Rebuild Bt (remember that we temporarily overwrote
   // it by its product with the inverse velocity mass matrix)
   t_get_Bt_start = TimingHelpers::timer();
-  bt_pt = Prec_blocks[2];
+  //bt_pt = Prec_blocks[2];
   bt_pt->sparse_indexed_output("Bt_from_constns");
   //pause("Before get bt block"); 
   
-  //this->get_block(0,1,cr_matrix_pt,bt_pt);
+  this->get_block(0,1,cr_matrix_pt,bt_pt);
   t_get_Bt_finish = TimingHelpers::timer();
   
   if(Doc_time)
